@@ -45,7 +45,7 @@ public class SweepLineProcessor<TXStructure, TYStructure, TEventPoint, TYStructu
             }
 
             var toVisit = new SubsequenceIterator<TYStructureNode, TEventPoint>(subsequence)
-                .Except(segmentsToRemove)
+                .Where(node => node.Value.EndPoint != eventPoint.Value)
                 .ToList();
             
             visitor.VisitSubsequence(eventPoint, toVisit);
