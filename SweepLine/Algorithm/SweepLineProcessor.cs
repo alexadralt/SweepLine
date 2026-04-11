@@ -11,24 +11,17 @@ public class SweepLineProcessor<TXStructure, TYStructure, TEventPoint, TYStructu
     where TXStructure : class, IXStructure<TEventPoint, TYStructureNode>
     where TYStructure : class, IYStructure<TYStructureNode, TEventPoint>
 {
-    private Dictionary<Point, List<Segment>> SegmentStart { get; set; }
+    private Dictionary<Point, List<Segment>> SegmentStart { get; } = new();
     
     public void AddSegments(IEnumerable<Segment> segments)
     {
         foreach (var segment in segments)
         {
-            UpdateSegmentList(SegmentStart, segment);
+            var startingSegments = SegmentStart.GetValueOrDefault(segment.StartPoint);
+            startingSegments?.Add(segment);
+            SegmentStart[segment.StartPoint] = startingSegments ?? [segment];
             
             xStructure.Insert(segment.StartPoint, null);
-        }
-
-        return;
-
-        void UpdateSegmentList(Dictionary<Point, List<Segment>> segmentLists, Segment segment)
-        {
-            var startingSegments = segmentLists.GetValueOrDefault(segment.StartPoint);
-            startingSegments?.Add(segment);
-            segmentLists[segment.StartPoint] = startingSegments ?? [segment];
         }
     }
 
