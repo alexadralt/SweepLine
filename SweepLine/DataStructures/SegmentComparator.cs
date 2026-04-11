@@ -3,14 +3,10 @@ using SweepLine.Primitives;
 
 namespace SweepLine.DataStructures;
 
-public class SegmentComparator<TYStructureNode>(Point point)
-where TYStructureNode : IYStructureNode
+public class SegmentComparator(Point point)
 {
-    public SegmentComparison Compare(TYStructureNode a, TYStructureNode b)
+    public SegmentComparison Compare(Segment segmentA, Segment segmentB)
     {
-        var segmentA = a.Value;
-        var segmentB = b.Value;
-        
         var parallelCheck = Segment.FindIntersection(segmentA, segmentB);
         if (parallelCheck is { Type: IntersectionType.SubSegment })
         {

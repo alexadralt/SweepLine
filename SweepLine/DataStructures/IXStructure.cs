@@ -2,9 +2,11 @@ using SweepLine.Primitives;
 
 namespace SweepLine.DataStructures;
 
-public interface IXStructure<out TEventPoint> where TEventPoint : IEventPoint
+public interface IXStructure<TEventPoint, TYStructureNode>
+    where TEventPoint : class, IEventPoint<TEventPoint, TYStructureNode>
+    where TYStructureNode : class, IYStructureNode<TYStructureNode, TEventPoint>
 {
-    public void Insert(Point point);
+    public TEventPoint Insert(Point point, TYStructureNode? referenced);
 
-    public TEventPoint Take();
+    public bool Take(out TEventPoint eventPoint);
 }

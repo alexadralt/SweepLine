@@ -2,13 +2,15 @@ using SweepLine.Primitives;
 
 namespace SweepLine.DataStructures;
 
-public interface IYStructure<TYStructureNode, in TEventPoint>
-    where TYStructureNode : IYStructureNode
-    where TEventPoint : IEventPoint
+public interface IYStructure<TYStructureNode, TEventPoint>
+    where TYStructureNode : class, IYStructureNode<TYStructureNode, TEventPoint>
+    where TEventPoint : class, IEventPoint<TEventPoint, TYStructureNode>
 {
     public (TYStructureNode Start, TYStructureNode End) FindIntersectingSegments(TEventPoint eventPoint);
 
-    public void InsertSegment(Segment segment, SegmentComparator<TYStructureNode> cmp);
+    public void ReverseSubSequence((TYStructureNode start, TYStructureNode end) subsequence);
 
-    public void RemoveSegment(TYStructureNode node);
+    public TYStructureNode InsertSegment(Segment segment, SegmentComparator cmp);
+
+    public void RemoveSegment(TYStructureNode segment);
 }
