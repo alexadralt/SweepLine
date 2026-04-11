@@ -10,5 +10,7 @@ public interface IYStructureNode<TYStructureNode, TEventPoint>
     
     public TEventPoint Referenced { get; }
     
-    public TYStructureNode Next { get; }
+    public TYStructureNode? Next { get; }
+    
+    public TYStructureNode? Previous { get; }
 }

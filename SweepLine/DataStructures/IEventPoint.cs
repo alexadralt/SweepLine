@@ -8,5 +8,5 @@ public interface IEventPoint<TEventPoint, TYStructureNode>
 {
     public Point Value { get; }
     
-    public TYStructureNode Referenced { get; set; }
+    public TYStructureNode? Referenced { get; set; }
 }

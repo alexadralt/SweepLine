@@ -39,12 +39,12 @@ public readonly struct Segment : IEquatable<Segment>
                         },
                     };
                 }
-
-                return new SegmentIntersection
-                {
-                    Type = IntersectionType.None,
-                };
             }
+
+            return new SegmentIntersection
+            {
+                Type = IntersectionType.None,
+            };
         }
 
         var t = ((x3 - x1) * (y4 - y3) - (x4 - x3) * (y3 - y1)) / denom;
