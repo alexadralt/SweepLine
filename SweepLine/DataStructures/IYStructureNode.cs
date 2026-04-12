@@ -8,7 +8,7 @@ public interface IYStructureNode<TYStructureNode, TEventPoint>
 {
     public Segment Value { get; }
     
-    public TEventPoint Referenced { get; }
+    public TEventPoint? Referenced { get; }
     
     public TYStructureNode? Next { get; }
     

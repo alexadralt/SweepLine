@@ -10,7 +10,7 @@ public class SegmentComparator(Point point)
         var parallelCheck = Segment.FindIntersection(segmentA, segmentB);
         if (parallelCheck is { Type: IntersectionType.SubSegment })
         {
-            return SegmentComparison.Parallel;
+            return SegmentComparison.Overlapping;
         }
 
         var maxY = Math.Max(segmentA.EndPoint.Y, segmentB.EndPoint.Y);
@@ -90,7 +90,7 @@ public class SegmentComparator(Point point)
 
 public enum SegmentComparison
 {
-    Parallel,
+    Overlapping,
     ABeforeB,
     BBeforeA,
 }

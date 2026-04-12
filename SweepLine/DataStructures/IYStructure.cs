@@ -6,8 +6,6 @@ public interface IYStructure<TYStructureNode, TEventPoint>
     where TYStructureNode : class, IYStructureNode<TYStructureNode, TEventPoint>
     where TEventPoint : class, IEventPoint<TEventPoint, TYStructureNode>
 {
-    public (TYStructureNode Start, TYStructureNode End)? FindIntersectingSegments(TEventPoint eventPoint);
-
     public void ReverseSubSequence((TYStructureNode start, TYStructureNode end) subsequence);
 
     public TYStructureNode InsertSegment(Segment segment, SegmentComparator cmp);

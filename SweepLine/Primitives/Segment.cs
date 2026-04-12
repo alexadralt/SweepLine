@@ -69,6 +69,17 @@ public readonly struct Segment : IEquatable<Segment>
         };
     }
 
+    public bool ContainsPoint(Point point)
+    {
+        //TODO: make this not dumb
+        
+        var segmentToCheck = this with { EndPoint = point };
+        var intersectionResult = FindIntersection(segmentToCheck, this);
+        
+        return intersectionResult.Type == IntersectionType.SubSegment &&
+               intersectionResult.SubSegment.EndPoint >= point;
+    }
+
     public bool Equals(Segment other) => 
         StartPoint.Equals(other.StartPoint) && EndPoint.Equals(other.EndPoint);
 
