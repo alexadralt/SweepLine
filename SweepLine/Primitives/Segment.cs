@@ -48,7 +48,7 @@ public readonly struct Segment : IEquatable<Segment>
         }
 
         var t = ((x3 - x1) * (y4 - y3) - (x4 - x3) * (y3 - y1)) / denom;
-        var s = ((x2 - x1) * (y3 - y1) - (x3 - x1) * (y2 - y1)) / denom;
+        var s = -((x2 - x1) * (y3 - y1) - (x3 - x1) * (y2 - y1)) / denom;
 
         if (t is >= 0 and <= 1 && s is >= 0 and <= 1)
         {

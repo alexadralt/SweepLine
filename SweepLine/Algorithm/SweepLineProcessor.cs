@@ -128,7 +128,11 @@ public class SweepLineProcessor<TXStructure, TYStructure, TEventPoint, TYStructu
         ISweepLineVisitor<TEventPoint, TYStructureNode> visitor,
         SegmentComparator segmentComparator)
     {
-        var segmentsToAdd = SegmentStart[eventPoint.Value];
+        var segmentsToAdd = SegmentStart.GetValueOrDefault(eventPoint.Value);
+        if (segmentsToAdd is null)
+        {
+            return;
+        }
             
         var insertedNodes = new List<TYStructureNode>(segmentsToAdd.Count);
         foreach (var segment in segmentsToAdd)

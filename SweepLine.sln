@@ -2,6 +2,8 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SweepLine", "SweepLine\SweepLine.csproj", "{34E591A5-169D-4370-B828-409E79171C5F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SweepLineTests", "SweepLineTests\SweepLineTests.csproj", "{41D607DC-DC01-4830-86E8-8D80C8A7D08B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -12,5 +14,9 @@ Global
 		{34E591A5-169D-4370-B828-409E79171C5F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{34E591A5-169D-4370-B828-409E79171C5F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{34E591A5-169D-4370-B828-409E79171C5F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{41D607DC-DC01-4830-86E8-8D80C8A7D08B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{41D607DC-DC01-4830-86E8-8D80C8A7D08B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{41D607DC-DC01-4830-86E8-8D80C8A7D08B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{41D607DC-DC01-4830-86E8-8D80C8A7D08B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
