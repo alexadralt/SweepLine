@@ -34,20 +34,76 @@ public class SweepLineProcessor<TXStructure, TYStructure, TEventPoint, TYStructu
 
             if (subsequence.HasValue)
             {
-                subsequence = RemoveSegmentsEndingInPoint(eventPoint, subsequence.Value, visitor);
+                var segmentsToRemove = new List<TYStructureNode>();
+                var segmentsToKeep = new List<TYStructureNode>();
+
+                foreach (var node in new SubsequenceIterator<TYStructureNode, TEventPoint>(subsequence.Value))
+                {
+                    if (node.Value.EndPoint == eventPoint.Value)
+                    {
+                        segmentsToRemove.Add(node);
+                    }
+                    else
+                    {
+                        segmentsToKeep.Add(node);
+                    }
+                }
+
+                visitor.VisitEndingSegments(eventPoint, segmentsToRemove);
+        
+                foreach (var segment in segmentsToRemove)
+                {
+                    yStructure.RemoveSegment(segment);
+                }
+
+                subsequence = segmentsToKeep.Count > 0 ? (segmentsToKeep[0], segmentsToKeep[^1]) : null;
 
                 if (subsequence.HasValue)
                 {
-                    subsequence = ReverseSubsequence(eventPoint, subsequence.Value, visitor);
+                    yStructure.ReverseSubSequence(subsequence.Value);
+
+                    // note(shevyrin): after reversal of the subsequence start and end pointers are backwards
+                    subsequence = (subsequence.Value.End, subsequence.Value.Start);
+
+                    visitor.VisitSubsequence(eventPoint,
+                        new SubsequenceIterator<TYStructureNode, TEventPoint>(subsequence.Value));
                 }
             }
 
             var segmentComparator = new SegmentComparator(eventPoint.Value);
-            AddStartingSegments(eventPoint, visitor, segmentComparator);
+            var segmentsToAdd = SegmentStart.GetValueOrDefault(eventPoint.Value);
+            if (segmentsToAdd is null)
+            {
+                return;
+            }
+            
+            var insertedNodes = new List<TYStructureNode>(segmentsToAdd.Count);
+            foreach (var segment in segmentsToAdd)
+            {
+                var node = yStructure.InsertSegment(segment, segmentComparator);
+                insertedNodes.Add(node);
+
+                InsertEventPoint(segment.EndPoint, node, segmentComparator);
+            }
+            
+            visitor.VisitStartingSegments(eventPoint, insertedNodes);
 
             if (subsequence.HasValue)
             {
-                FindIntersections(subsequence.Value, eventPoint, segmentComparator);
+                var (start, end) = subsequence.Value;
+
+                var prev = start.Previous;
+                var next = end.Next;
+
+                if (prev is not null)
+                {
+                    AddIntersectionEvent(prev, start, eventPoint, segmentComparator);
+                }
+
+                if (next is not null)
+                {
+                    AddIntersectionEvent(end, next, eventPoint, segmentComparator);
+                }
             }
         }
     }
@@ -75,96 +131,6 @@ public class SweepLineProcessor<TXStructure, TYStructure, TEventPoint, TYStructu
         }
 
         return (start, end);
-    }
-
-    private (TYStructureNode Start, TYStructureNode End)? RemoveSegmentsEndingInPoint(
-        TEventPoint eventPoint,
-        (TYStructureNode Start, TYStructureNode End) subsequence,
-        ISweepLineVisitor<TEventPoint, TYStructureNode> visitor)
-    {
-        var segmentsToRemove = new List<TYStructureNode>();
-        var segmentsToKeep = new List<TYStructureNode>();
-
-        foreach (var node in new SubsequenceIterator<TYStructureNode, TEventPoint>(subsequence))
-        {
-            if (node.Value.EndPoint == eventPoint.Value)
-            {
-                segmentsToRemove.Add(node);
-            }
-            else
-            {
-                segmentsToKeep.Add(node);
-            }
-        }
-
-        visitor.VisitEndingSegments(eventPoint, segmentsToRemove);
-        
-        foreach (var segment in segmentsToRemove)
-        {
-            yStructure.RemoveSegment(segment);
-        }
-
-        return segmentsToKeep.Count > 0 ? (segmentsToKeep[0], segmentsToKeep[^1]) : null;
-    }
-
-    private (TYStructureNode Start, TYStructureNode End) ReverseSubsequence(
-        TEventPoint eventPoint,
-        (TYStructureNode Start, TYStructureNode End) subsequence,
-        ISweepLineVisitor<TEventPoint, TYStructureNode> visitor)
-    {
-        yStructure.ReverseSubSequence(subsequence);
-
-        // note(shevyrin): after reversal of the subsequence start and end pointers are backwards
-        subsequence = (subsequence.End, subsequence.Start);
-
-        visitor.VisitSubsequence(eventPoint,
-            new SubsequenceIterator<TYStructureNode, TEventPoint>(subsequence));
-
-        return subsequence;
-    }
-
-    private void AddStartingSegments(
-        TEventPoint eventPoint,
-        ISweepLineVisitor<TEventPoint, TYStructureNode> visitor,
-        SegmentComparator segmentComparator)
-    {
-        var segmentsToAdd = SegmentStart.GetValueOrDefault(eventPoint.Value);
-        if (segmentsToAdd is null)
-        {
-            return;
-        }
-            
-        var insertedNodes = new List<TYStructureNode>(segmentsToAdd.Count);
-        foreach (var segment in segmentsToAdd)
-        {
-            var node = yStructure.InsertSegment(segment, segmentComparator);
-            insertedNodes.Add(node);
-
-            InsertEventPoint(segment.EndPoint, node, segmentComparator);
-        }
-            
-        visitor.VisitStartingSegments(eventPoint, insertedNodes);
-    }
-
-    private void FindIntersections(
-        (TYStructureNode Start, TYStructureNode End) subsequence,
-        TEventPoint eventPoint,
-        SegmentComparator comparator)
-    {
-        var (start, end) = subsequence;
-
-        var prev = start.Previous;
-        var next = end.Next;
-
-        if (prev is not null)
-        {
-            AddIntersectionEvent(prev, start, eventPoint, comparator);
-        }
-
-        if (next is not null)
-        {
-            AddIntersectionEvent(end, next, eventPoint, comparator);
-        }
     }
 
     private void AddIntersectionEvent(
