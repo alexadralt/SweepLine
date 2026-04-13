@@ -49,7 +49,10 @@ public class SweepLineProcessor<TXStructure, TYStructure, TEventPoint, TYStructu
                     }
                 }
 
-                visitor.VisitEndingSegments(eventPoint, segmentsToRemove);
+                if (segmentsToRemove.Count > 0)
+                {
+                    visitor.VisitEndingSegments(eventPoint, segmentsToRemove);
+                }
         
                 foreach (var segment in segmentsToRemove)
                 {
@@ -65,28 +68,46 @@ public class SweepLineProcessor<TXStructure, TYStructure, TEventPoint, TYStructu
                     // note(shevyrin): after reversal of the subsequence start and end pointers are backwards
                     subsequence = (subsequence.Value.End, subsequence.Value.Start);
 
+                    eventPoint.Referenced = subsequence.Value.Start;
+
                     visitor.VisitSubsequence(eventPoint,
                         new SubsequenceIterator<TYStructureNode, TEventPoint>(subsequence.Value));
+                }
+                else
+                {
+                    eventPoint.Referenced = null;
                 }
             }
 
             var segmentComparator = new SegmentComparator(eventPoint.Value);
             var segmentsToAdd = SegmentStart.GetValueOrDefault(eventPoint.Value);
-            if (segmentsToAdd is null)
+            if (segmentsToAdd is not null)
             {
-                return;
-            }
-            
-            var insertedNodes = new List<TYStructureNode>(segmentsToAdd.Count);
-            foreach (var segment in segmentsToAdd)
-            {
-                var node = yStructure.InsertSegment(segment, segmentComparator);
-                insertedNodes.Add(node);
+                // note(shevyrin): we have to use a hash set here because we can add same node twice in case of overlapping segments
+                var insertedNodes = new HashSet<TYStructureNode>(
+                    segmentsToAdd.Count,
+                    EqualityComparer<TYStructureNode>.Create(
+                        (nodeA, nodeB) => nodeA?.UniqueId == nodeB?.UniqueId,
+                        node => node.UniqueId));
+                
+                foreach (var segment in segmentsToAdd)
+                {
+                    var node = yStructure.InsertSegment(segment, segmentComparator);
+                    insertedNodes.Add(node);
 
-                InsertEventPoint(segment.EndPoint, node, segmentComparator);
+                    InsertEventPoint(segment.EndPoint, node, segmentComparator);
+
+                    if (eventPoint.Referenced == null ||
+                        segmentComparator.Compare(eventPoint.Referenced.Value, segment) == SegmentComparison.BBeforeA)
+                    {
+                        eventPoint.Referenced = node;
+                    }
+                }
+            
+                visitor.VisitStartingSegments(eventPoint, insertedNodes);
             }
             
-            visitor.VisitStartingSegments(eventPoint, insertedNodes);
+            subsequence = FindSubsequence(eventPoint);
 
             if (subsequence.HasValue)
             {

@@ -13,23 +13,28 @@ public class YStructure : IYStructure<YStructureNode, XStructureNode>
         {
             return;
         }
+
+        if (subsequence.start == Head)
+        {
+            Head = subsequence.end;
+        }
         
         var rightEdge = subsequence.end.Next;
         var leftEdge = subsequence.start.Previous;
 
-        subsequence.end.Previous = leftEdge;
-        
-        var newEnd = subsequence.start;
-        newEnd.Next = rightEdge;
-        newEnd.Previous = subsequence.end;
-        
-        var current = subsequence.start.Next;
-        while (current != null && current != subsequence.end)
+        var accumulator = rightEdge;
+        var current = subsequence.start;
+
+        while (current != rightEdge)
         {
-            current.Next = newEnd;
-            newEnd = current;
-            newEnd.Previous = subsequence.end;
-            subsequence.end.Next = newEnd;
+            var nextCurrent = current!.Next;
+            
+            current.Previous = leftEdge;
+            current.Next = accumulator;
+            accumulator?.Previous = current;
+
+            accumulator = current;
+            current = nextCurrent;
         }
     }
 
@@ -133,11 +138,13 @@ public class YStructure : IYStructure<YStructureNode, XStructureNode>
 
 public class YStructureNode : IYStructureNode<YStructureNode, XStructureNode>
 {
-    public Segment Value { get; set; }
+    private static int _currentId;
     
-    public XStructureNode? Referenced { get; }
+    public Segment Value { get; set; }
     
     public YStructureNode? Next { get; set; }
     
     public YStructureNode? Previous { get; set; }
+
+    public int UniqueId { get; } = _currentId++;
 }

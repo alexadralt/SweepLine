@@ -8,9 +8,9 @@ public interface IYStructureNode<TYStructureNode, TEventPoint>
 {
     public Segment Value { get; }
     
-    public TEventPoint? Referenced { get; }
-    
     public TYStructureNode? Next { get; }
     
     public TYStructureNode? Previous { get; }
+    
+    public int UniqueId { get; }
 }
