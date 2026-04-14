@@ -63,6 +63,7 @@ public class SweepLineProcessor<TXStructure, TYStructure, TEventPoint, TYStructu
 
                 if (subsequence.HasValue)
                 {
+                    // TODO: handle reversal of vertical segments
                     yStructure.ReverseSubSequence(subsequence.Value);
 
                     // note(shevyrin): after reversal of the subsequence start and end pointers are backwards

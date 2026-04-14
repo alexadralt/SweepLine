@@ -22,6 +22,8 @@ public class YStructure : IYStructure<YStructureNode, XStructureNode>
         var rightEdge = subsequence.end.Next;
         var leftEdge = subsequence.start.Previous;
 
+        leftEdge?.Next = subsequence.end;
+
         var accumulator = rightEdge;
         var current = subsequence.start;
 

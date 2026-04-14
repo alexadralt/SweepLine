@@ -24,6 +24,11 @@ public readonly struct Point : IEquatable<Point>, IComparable<Point>
 
     public override int GetHashCode() => HashCode.Combine(X, Y);
 
+    public override string ToString()
+    {
+        return $"({X}; {Y})";
+    }
+
     public static bool operator ==(Point left, Point right) => left.Equals(right);
 
     public static bool operator !=(Point left, Point right) => !left.Equals(right);

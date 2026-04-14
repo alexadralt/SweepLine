@@ -86,7 +86,12 @@ public readonly struct Segment : IEquatable<Segment>
     public override bool Equals(object? obj) => obj is Segment other && Equals(other);
 
     public override int GetHashCode() => HashCode.Combine(StartPoint, EndPoint);
-    
+
+    public override string ToString()
+    {
+        return $"[{StartPoint} - {EndPoint}]";
+    }
+
     public static bool operator ==(Segment left, Segment right) => left.Equals(right);
 
     public static bool operator !=(Segment left, Segment right) => !left.Equals(right);

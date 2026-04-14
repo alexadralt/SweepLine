@@ -20,11 +20,26 @@ public class SweepLineProcessorTests
             var list = SegmentEndEvents.GetValueOrDefault(eventPoint.Value);
             list?.AddRange(segmentList);
             SegmentEndEvents[eventPoint.Value] = list ?? segmentList;
+            
+            Console.Write($"Ending segments in point {eventPoint.Value}: ");
+            foreach (var segment in segmentList)
+            {
+                Console.Write($"{segment}; "); 
+            }
+            Console.WriteLine("|");
         }
 
         public void VisitSubsequence(XStructureNode eventPoint, IEnumerable<YStructureNode> subsequence)
         {
-            SegmentSubsequenceEvents[eventPoint.Value] = subsequence.Select(segment => segment.Value).ToList();
+            var segmentList = subsequence.Select(segment => segment.Value).ToList();
+            SegmentSubsequenceEvents[eventPoint.Value] = segmentList;
+
+            Console.Write($"Intersecting segments in point {eventPoint.Value}: ");
+            foreach (var segment in segmentList)
+            {
+                Console.Write($"{segment}; ");
+            }
+            Console.WriteLine("|");
         }
 
         public void VisitStartingSegments(XStructureNode eventPoint, IEnumerable<YStructureNode> segments)
@@ -33,6 +48,13 @@ public class SweepLineProcessorTests
             var list = SegmentStartEvents.GetValueOrDefault(eventPoint.Value);
             list?.AddRange(segmentList);
             SegmentStartEvents[eventPoint.Value] = list ?? segmentList;
+            
+            Console.Write($"Starting segments in point {eventPoint.Value}: ");
+            foreach (var segment in segmentList)
+            {
+                Console.Write($"{segment}; ");
+            }
+            Console.WriteLine("|");
         }
     }
 
@@ -65,11 +87,31 @@ public class SweepLineProcessorTests
                 {
                     X = 6, Y = -3,
                 }
-            }
+            },
+            new()
+            {
+                StartPoint = new Point
+                {
+                    X = -1, Y = 5,
+                },
+                EndPoint = new Point
+                {
+                    X = 6, Y = 2,
+                }
+            },
+            new()
+            {
+                StartPoint = new Point
+                {
+                    X = -2, Y = 2.9433962264150946,
+                },
+                EndPoint = new Point
+                {
+                    X = 3, Y = 2.9433962264150946,
+                },
+            },
         });
         
         processor.Process(new SweepLineTestVisitor());
-
-        Assert.Pass();
     }
 }
