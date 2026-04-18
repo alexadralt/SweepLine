@@ -18,11 +18,11 @@ public readonly struct Point : IEquatable<Point>, IComparable<Point>
     public bool Equals(Point other) => DistanceSquared(this, other) < Eps * Eps;
 
     public int CompareTo(Point other)
-        => Math.Abs(X - other.X) > Eps ? X.CompareTo(other.X) : Y.CompareTo(other.Y);
+        => Equals(other) ? 0 : Math.Abs(X - other.X) > Eps ? X.CompareTo(other.X) : Y.CompareTo(other.Y);
 
     public override bool Equals(object? obj) => obj is Point other && Equals(other);
 
-    public override int GetHashCode() => HashCode.Combine(X, Y);
+    public override int GetHashCode() => HashCode.Combine(Math.Floor(X), Math.Floor(Y));
 
     public override string ToString()
     {

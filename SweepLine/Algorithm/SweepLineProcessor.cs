@@ -99,7 +99,10 @@ public class SweepLineProcessor(IXStructure xStructure, IYStructure yStructure)
             var segmentsToAdd = SegmentStart.GetValueOrDefault(eventPoint.Value);
             if (segmentsToAdd is not null)
             {
-                var insertedNodes = new List<IYStructureNode>();
+                var insertedNodes = new HashSet<IYStructureNode>(
+                    EqualityComparer<IYStructureNode>.Create(
+                        (nodeA, nodeB) => nodeA?.Value![0] == nodeB?.Value![0],
+                        node => node.Value![0].GetHashCode()));
                 
                 foreach (var segment in segmentsToAdd)
                 {
@@ -111,10 +114,14 @@ public class SweepLineProcessor(IXStructure xStructure, IYStructure yStructure)
                     }
                     else
                     {
+                        insertedNodes.Add(node);
                         node.Value.Add(segment);
                         if (segment.EndPoint > node.Value[0].EndPoint)
                         {
+                            //note(shevyrin): since we use first segment as a key, we have to reinsert this node when we swap first segment with new one
+                            insertedNodes.Remove(node);
                             (node.Value[0], node.Value[^1]) = (node.Value[^1], node.Value[0]);
+                            insertedNodes.Add(node);
                         }
                     }
 
