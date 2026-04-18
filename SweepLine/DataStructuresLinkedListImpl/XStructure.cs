@@ -24,24 +24,7 @@ public class XStructure : IXStructure
         {
             if (current.Value == point)
             {
-                if (prev is null)
-                {
-                    var headNext = Head.Next;
-                    Head = new XStructureNode
-                    {
-                        Value = point,
-                        Next = headNext,
-                    };
-                    return Head;
-                }
-
-                var next = current.Next;
-                prev.Next = new XStructureNode
-                {
-                    Value = point,
-                    Next = next,
-                };
-                return prev.Next;
+                return current;
             }
 
             if (current.Value > point)
