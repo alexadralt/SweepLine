@@ -24,19 +24,19 @@ public class SweepLineProcessor(IXStructure xStructure, IYStructure yStructure)
     {
         while (xStructure.Take(out var eventPoint))
         {
-            var subsequence = FindSubsequence(eventPoint);
+            var subsequence = (eventPoint.MinNode, eventPoint.MaxNode);
 
             var intersectingSegments = new List<List<Segment>>();
             
             // note(shevyrin): we need to defer removal of overlapping segments that end in current point, so that we can pass them correctly to the visitor
             var overlappingSegmentsToRemove = new List<(IYStructureNode, List<int>)>();
 
-            if (subsequence.HasValue)
+            if (subsequence.MinNode is not null)
             {
                 var nodesToRemove = new List<IYStructureNode>();
                 var nodesToKeep = new List<IYStructureNode>();
 
-                foreach (var node in new SubsequenceIterator(subsequence.Value))
+                foreach (var node in new SubsequenceIterator(subsequence!))
                 {
                     if (node.Value![0].EndPoint == eventPoint.Value)
                     {
@@ -57,18 +57,17 @@ public class SweepLineProcessor(IXStructure xStructure, IYStructure yStructure)
                     }
                 }
 
-                subsequence = nodesToKeep.Count > 0 ? (nodesToKeep[0], nodesToKeep[^1]) : null;
+                subsequence = nodesToKeep.Count > 0 ? (nodesToKeep[0], nodesToKeep[^1]) : (null, null);
 
-                if (subsequence.HasValue)
+                if (subsequence.MinNode is not null)
                 {
-                    yStructure.ReverseSubSequence(subsequence.Value);
+                    yStructure.ReverseSubSequence(subsequence!);
+                    subsequence = (subsequence.MaxNode, subsequence.MinNode);
 
-                    // note(shevyrin): after reversal of the subsequence start and end pointers are backwards
-                    subsequence = (subsequence.Value.End, subsequence.Value.Start);
+                    eventPoint.MinNode = subsequence.MinNode;
+                    eventPoint.MaxNode = subsequence.MaxNode;
 
-                    eventPoint.Referenced = subsequence.Value.Start;
-
-                    foreach (var node in new SubsequenceIterator(subsequence.Value))
+                    foreach (var node in new SubsequenceIterator(subsequence!))
                     {
                         var indicesToRemove = new List<int>();
                         
@@ -91,7 +90,8 @@ public class SweepLineProcessor(IXStructure xStructure, IYStructure yStructure)
                 }
                 else
                 {
-                    eventPoint.Referenced = null;
+                    eventPoint.MinNode = null;
+                    eventPoint.MaxNode = null;
                 }
             }
 
@@ -125,27 +125,33 @@ public class SweepLineProcessor(IXStructure xStructure, IYStructure yStructure)
                         }
                     }
 
-                    InsertEventPoint(segment.EndPoint, node, segmentComparator);
+                    InsertEventPoint(segment.EndPoint, node, node, segmentComparator);
 
                     // note(shevyrin): update references here so that we can check for intersections correctly in a later step
-                    if (eventPoint.Referenced == null ||
-                        segmentComparator.Compare(eventPoint.Referenced.Value![0], segment) == SegmentComparison.BBeforeA)
+                    if (eventPoint.MinNode == null ||
+                        segmentComparator.Compare(eventPoint.MinNode.Value![0], segment) == SegmentComparison.BBeforeA)
                     {
-                        eventPoint.Referenced = node;
+                        eventPoint.MinNode = node;
+                    }
+
+                    if (eventPoint.MaxNode == null ||
+                        segmentComparator.Compare(eventPoint.MaxNode.Value![0], segment) == SegmentComparison.ABeforeB)
+                    {
+                        eventPoint.MaxNode = node;
                     }
                 }
             
                 intersectingSegments.AddRange(insertedNodes.Select(node => node.Value!));
             }
             
-            subsequence = FindSubsequence(eventPoint);
+            subsequence = (eventPoint.MinNode, eventPoint.MaxNode);
 
-            if (subsequence.HasValue)
+            if (subsequence.MinNode is not null)
             {
-                var (start, end) = subsequence.Value;
+                var (start, end) = subsequence;
 
                 var prev = start.Previous;
-                var next = end.Next;
+                var next = end!.Next;
 
                 if (prev is not null)
                 {
@@ -170,31 +176,6 @@ public class SweepLineProcessor(IXStructure xStructure, IYStructure yStructure)
         }
     }
 
-    private (IYStructureNode Start, IYStructureNode End)? FindSubsequence(IEventPoint eventPoint)
-    {
-        var start = eventPoint.Referenced;
-        if (start is null)
-        {
-            return null;
-        }
-
-        var current = start;
-        var end = current;
-        while (true)
-        {
-            current = current.Next;
-            
-            if (!current?.Value![0].ContainsPoint(eventPoint.Value) ?? true)
-            {
-                break;
-            }
-
-            end = current;
-        }
-
-        return (start, end);
-    }
-
     private void AddIntersectionEvent(
         IYStructureNode bottom,
         IYStructureNode top,
@@ -204,7 +185,7 @@ public class SweepLineProcessor(IXStructure xStructure, IYStructure yStructure)
         var intersection = Segment.FindIntersection(bottom.Value![0], top.Value![0]);
         if (intersection is { Type: IntersectionType.Point } && intersection.Point > eventPoint.Value)
         {
-            InsertEventPoint(intersection.Point, bottom, comparator);
+            InsertEventPoint(intersection.Point, bottom, top, comparator);
         }
         else if (intersection is { Type: IntersectionType.SubSegment })
         {
@@ -213,24 +194,34 @@ public class SweepLineProcessor(IXStructure xStructure, IYStructure yStructure)
         }
     }
 
-    private void InsertEventPoint(Point point, IYStructureNode node, SegmentComparator comparator)
+    private void InsertEventPoint(Point point, IYStructureNode bottom, IYStructureNode top, SegmentComparator comparator)
     {
         var eventPoint = xStructure.FindOrDefault(point);
         if (eventPoint is not null)
         {
-            var comparison = eventPoint.Referenced != null
-                ? comparator.Compare(node.Value![0], eventPoint.Referenced.Value![0])
+            var comparison = eventPoint.MinNode != null
+                ? comparator.Compare(bottom.Value![0], eventPoint.MinNode.Value![0])
                 : SegmentComparison.ABeforeB;
                     
             if (comparison == SegmentComparison.ABeforeB)
             {
-                eventPoint.Referenced = node;
+                eventPoint.MinNode = bottom;
+            }
+
+            comparison = eventPoint.MaxNode != null
+                ? comparator.Compare(top.Value![0], eventPoint.MaxNode.Value![0])
+                : SegmentComparison.BBeforeA;
+
+            if (comparison == SegmentComparison.BBeforeA)
+            {
+                eventPoint.MaxNode = top;
             }
         }
         else
         {
             var endPoint = xStructure.Insert(point);
-            endPoint.Referenced = node;
+            endPoint.MinNode = bottom;
+            endPoint.MaxNode = top;
         }
     }
 }

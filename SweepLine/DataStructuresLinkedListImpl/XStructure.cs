@@ -111,7 +111,9 @@ public class XStructureNode : IEventPoint
 {
     public Point Value { get; init; }
     
-    public IYStructureNode? Referenced { get; set; }
+    public IYStructureNode? MinNode { get; set; }
+    
+    public IYStructureNode? MaxNode { get; set; }
 
     public XStructureNode? Next { get; set; }
 }
