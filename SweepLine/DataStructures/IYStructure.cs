@@ -8,7 +8,7 @@ public interface IYStructure<TYStructureNode, TEventPoint>
 {
     public void ReverseSubSequence((TYStructureNode start, TYStructureNode end) subsequence);
 
-    public TYStructureNode InsertSegment(Segment segment, SegmentComparator cmp);
+    public TYStructureNode FindOrCreateNode(Segment segment, SegmentComparator cmp);
 
-    public void RemoveSegment(TYStructureNode segment);
+    public void RemoveNode(TYStructureNode node);
 }

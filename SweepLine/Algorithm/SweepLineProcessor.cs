@@ -32,38 +32,41 @@ public class SweepLineProcessor<TXStructure, TYStructure, TEventPoint, TYStructu
         {
             var subsequence = FindSubsequence(eventPoint);
 
+            var intersectingSegments = new List<List<Segment>>();
+            
+            // note(shevyrin): we need to defer removal of overlapping segments that end in current point, so that we can pass them correctly to the visitor
+            var overlappingSegmentsToRemove = new List<(TYStructureNode, List<int>)>();
+
             if (subsequence.HasValue)
             {
-                var segmentsToRemove = new List<TYStructureNode>();
-                var segmentsToKeep = new List<TYStructureNode>();
+                var nodesToRemove = new List<TYStructureNode>();
+                var nodesToKeep = new List<TYStructureNode>();
 
                 foreach (var node in new SubsequenceIterator<TYStructureNode, TEventPoint>(subsequence.Value))
                 {
-                    if (node.Value.EndPoint == eventPoint.Value)
+                    if (node.Value![0].EndPoint == eventPoint.Value)
                     {
-                        segmentsToRemove.Add(node);
+                        nodesToRemove.Add(node);
                     }
                     else
                     {
-                        segmentsToKeep.Add(node);
+                        nodesToKeep.Add(node);
                     }
                 }
 
-                if (segmentsToRemove.Count > 0)
+                if (nodesToRemove.Count > 0)
                 {
-                    visitor.VisitEndingSegments(eventPoint, segmentsToRemove);
-                }
-        
-                foreach (var segment in segmentsToRemove)
-                {
-                    yStructure.RemoveSegment(segment);
+                    foreach (var node in nodesToRemove)
+                    {
+                        intersectingSegments.Add(node.Value!);
+                        yStructure.RemoveNode(node);
+                    }
                 }
 
-                subsequence = segmentsToKeep.Count > 0 ? (segmentsToKeep[0], segmentsToKeep[^1]) : null;
+                subsequence = nodesToKeep.Count > 0 ? (nodesToKeep[0], nodesToKeep[^1]) : null;
 
                 if (subsequence.HasValue)
                 {
-                    // TODO: handle reversal of vertical segments
                     yStructure.ReverseSubSequence(subsequence.Value);
 
                     // note(shevyrin): after reversal of the subsequence start and end pointers are backwards
@@ -71,8 +74,26 @@ public class SweepLineProcessor<TXStructure, TYStructure, TEventPoint, TYStructu
 
                     eventPoint.Referenced = subsequence.Value.Start;
 
-                    visitor.VisitSubsequence(eventPoint,
-                        new SubsequenceIterator<TYStructureNode, TEventPoint>(subsequence.Value));
+                    foreach (var node in new SubsequenceIterator<TYStructureNode, TEventPoint>(subsequence.Value))
+                    {
+                        var indicesToRemove = new List<int>();
+                        
+                        for (var i = 0; i < node.Value!.Count; i++)
+                        {
+                            var segment = node.Value![i];
+                            if (segment.EndPoint == eventPoint.Value)
+                            {
+                                indicesToRemove.Add(i);
+                            }
+                        }
+
+                        if (indicesToRemove.Count > 0)
+                        {
+                            overlappingSegmentsToRemove.Add((node, indicesToRemove));
+                        }
+                        
+                        intersectingSegments.Add(node.Value!);
+                    }
                 }
                 else
                 {
@@ -84,28 +105,36 @@ public class SweepLineProcessor<TXStructure, TYStructure, TEventPoint, TYStructu
             var segmentsToAdd = SegmentStart.GetValueOrDefault(eventPoint.Value);
             if (segmentsToAdd is not null)
             {
-                // note(shevyrin): we have to use a hash set here because we can add same node twice in case of overlapping segments
-                var insertedNodes = new HashSet<TYStructureNode>(
-                    segmentsToAdd.Count,
-                    EqualityComparer<TYStructureNode>.Create(
-                        (nodeA, nodeB) => nodeA?.UniqueId == nodeB?.UniqueId,
-                        node => node.UniqueId));
+                var insertedNodes = new List<TYStructureNode>();
                 
                 foreach (var segment in segmentsToAdd)
                 {
-                    var node = yStructure.InsertSegment(segment, segmentComparator);
-                    insertedNodes.Add(node);
+                    var node = yStructure.FindOrCreateNode(segment, segmentComparator);
+                    if (node.Value is null)
+                    {
+                        node.Value = [segment];
+                        insertedNodes.Add(node);
+                    }
+                    else
+                    {
+                        node.Value.Add(segment);
+                        if (segment.EndPoint > node.Value[0].EndPoint)
+                        {
+                            (node.Value[0], node.Value[^1]) = (node.Value[^1], node.Value[0]);
+                        }
+                    }
 
                     InsertEventPoint(segment.EndPoint, node, segmentComparator);
 
+                    // note(shevyrin): update references here so that we can check for intersections correctly in a later step
                     if (eventPoint.Referenced == null ||
-                        segmentComparator.Compare(eventPoint.Referenced.Value, segment) == SegmentComparison.BBeforeA)
+                        segmentComparator.Compare(eventPoint.Referenced.Value![0], segment) == SegmentComparison.BBeforeA)
                     {
                         eventPoint.Referenced = node;
                     }
                 }
             
-                visitor.VisitStartingSegments(eventPoint, insertedNodes);
+                intersectingSegments.AddRange(insertedNodes.Select(node => node.Value!));
             }
             
             subsequence = FindSubsequence(eventPoint);
@@ -127,6 +156,16 @@ public class SweepLineProcessor<TXStructure, TYStructure, TEventPoint, TYStructu
                     AddIntersectionEvent(end, next, eventPoint, segmentComparator);
                 }
             }
+            
+            visitor.VisitIntersectingSegments(eventPoint.Value, intersectingSegments);
+
+            foreach (var (node, indicesToRemove) in overlappingSegmentsToRemove)
+            {
+                foreach (var i in indicesToRemove)
+                {
+                    node.Value!.RemoveAt(i);
+                }
+            }
         }
     }
 
@@ -144,7 +183,7 @@ public class SweepLineProcessor<TXStructure, TYStructure, TEventPoint, TYStructu
         {
             current = current.Next;
             
-            if (!current?.Value.ContainsPoint(eventPoint.Value) ?? true)
+            if (!current?.Value![0].ContainsPoint(eventPoint.Value) ?? true)
             {
                 break;
             }
@@ -161,7 +200,7 @@ public class SweepLineProcessor<TXStructure, TYStructure, TEventPoint, TYStructu
         TEventPoint eventPoint,
         SegmentComparator comparator)
     {
-        var intersection = Segment.FindIntersection(bottom.Value, top.Value);
+        var intersection = Segment.FindIntersection(bottom.Value![0], top.Value![0]);
         if (intersection is { Type: IntersectionType.Point } && intersection.Point > eventPoint.Value)
         {
             InsertEventPoint(intersection.Point, bottom, comparator);
@@ -179,7 +218,7 @@ public class SweepLineProcessor<TXStructure, TYStructure, TEventPoint, TYStructu
         if (eventPoint is not null)
         {
             var comparison = eventPoint.Referenced != null
-                ? comparator.Compare(node.Value, eventPoint.Referenced.Value)
+                ? comparator.Compare(node.Value![0], eventPoint.Referenced.Value![0])
                 : SegmentComparison.ABeforeB;
                     
             if (comparison == SegmentComparison.ABeforeB)

@@ -6,50 +6,16 @@ namespace SweepLineTests;
 
 public class SweepLineProcessorTests
 {
-    private static Dictionary<Point, List<Segment>> SegmentStartEvents { get; set; } = [];
-    
-    private static Dictionary<Point, List<Segment>> SegmentSubsequenceEvents { get; set; } = [];
-    
-    private static Dictionary<Point, List<Segment>> SegmentEndEvents { get; set; } = [];
+    private static Dictionary<Point, List<Segment>> SegmentSubsequenceEvents { get; } = [];
     
     private class SweepLineTestVisitor : ISweepLineVisitor<XStructureNode, YStructureNode>
     {
-        public void VisitEndingSegments(XStructureNode eventPoint, IEnumerable<YStructureNode> segments)
+        public void VisitIntersectingSegments(Point point, IEnumerable<IEnumerable<Segment>> segments)
         {
-            var segmentList = segments.Select(segment => segment.Value).ToList();
-            var list = SegmentEndEvents.GetValueOrDefault(eventPoint.Value);
-            list?.AddRange(segmentList);
-            SegmentEndEvents[eventPoint.Value] = list ?? segmentList;
-            
-            Console.Write($"Ending segments in point {eventPoint.Value}: ");
-            foreach (var segment in segmentList)
-            {
-                Console.Write($"{segment}; "); 
-            }
-            Console.WriteLine("|");
-        }
+            var segmentList = segments.SelectMany(list => list).ToList();
+            SegmentSubsequenceEvents[point] = segmentList;
 
-        public void VisitSubsequence(XStructureNode eventPoint, IEnumerable<YStructureNode> subsequence)
-        {
-            var segmentList = subsequence.Select(segment => segment.Value).ToList();
-            SegmentSubsequenceEvents[eventPoint.Value] = segmentList;
-
-            Console.Write($"Intersecting segments in point {eventPoint.Value}: ");
-            foreach (var segment in segmentList)
-            {
-                Console.Write($"{segment}; ");
-            }
-            Console.WriteLine("|");
-        }
-
-        public void VisitStartingSegments(XStructureNode eventPoint, IEnumerable<YStructureNode> segments)
-        {
-            var segmentList = segments.Select(segment => segment.Value).ToList();
-            var list = SegmentStartEvents.GetValueOrDefault(eventPoint.Value);
-            list?.AddRange(segmentList);
-            SegmentStartEvents[eventPoint.Value] = list ?? segmentList;
-            
-            Console.Write($"Starting segments in point {eventPoint.Value}: ");
+            Console.Write($"Intersecting segments in point {point}: ");
             foreach (var segment in segmentList)
             {
                 Console.Write($"{segment}; ");
@@ -108,6 +74,17 @@ public class SweepLineProcessorTests
                 EndPoint = new Point
                 {
                     X = 3, Y = 2.9433962264150946,
+                },
+            },
+            new()
+            {
+                StartPoint = new Point
+                {
+                    X = -1, Y = 5,
+                },
+                EndPoint = new Point
+                {
+                    X = 2.5, Y = 3.5,
                 },
             },
         });

@@ -40,14 +40,11 @@ public class YStructure : IYStructure<YStructureNode, XStructureNode>
         }
     }
 
-    public YStructureNode InsertSegment(Segment segment, SegmentComparator cmp)
+    public YStructureNode FindOrCreateNode(Segment segment, SegmentComparator cmp)
     {
         if (Head is null)
         {
-            Head = new YStructureNode
-            {
-                Value = segment,
-            };
+            Head = new YStructureNode();
             return Head;
         }
 
@@ -55,31 +52,11 @@ public class YStructure : IYStructure<YStructureNode, XStructureNode>
         YStructureNode? prev = null;
         while (true)
         {
-            var cmpResult = cmp.Compare(current.Value, segment);
+            var cmpResult = cmp.Compare(current.Value![0], segment);
             
-            if (cmpResult == SegmentComparison.Overlapping && segment.EndPoint > current.Value.EndPoint)
+            if (cmpResult == SegmentComparison.Overlapping)
             {
-                if (prev is null)
-                {
-                    var headNext = Head.Next;
-                    Head = new YStructureNode
-                    {
-                        Value = segment,
-                        Next = headNext,
-                    };
-                    headNext?.Previous = Head;
-                    return Head;
-                }
-
-                var next = current.Next;
-                prev.Next = new YStructureNode
-                {
-                    Value = segment,
-                    Next = next,
-                    Previous = prev,
-                };
-                next?.Previous = prev.Next;
-                return prev.Next;
+                return current;
             }
 
             if (cmpResult == SegmentComparison.BBeforeA)
@@ -89,7 +66,6 @@ public class YStructure : IYStructure<YStructureNode, XStructureNode>
                     var oldHead = Head;
                     Head = new YStructureNode
                     {
-                        Value = segment,
                         Next = oldHead,
                     };
                     oldHead.Previous = Head;
@@ -99,7 +75,6 @@ public class YStructure : IYStructure<YStructureNode, XStructureNode>
 
                 prev.Next = new YStructureNode
                 {
-                    Value = segment,
                     Next = current,
                     Previous = prev,
                 };
@@ -114,7 +89,6 @@ public class YStructure : IYStructure<YStructureNode, XStructureNode>
             {
                 prev.Next = new YStructureNode
                 {
-                    Value = segment,
                     Previous = prev,
                 };
                 return prev.Next;
@@ -122,10 +96,10 @@ public class YStructure : IYStructure<YStructureNode, XStructureNode>
         }
     }
 
-    public void RemoveSegment(YStructureNode segment)
+    public void RemoveNode(YStructureNode node)
     {
-        var prev = segment.Previous;
-        var next = segment.Next;
+        var prev = node.Previous;
+        var next = node.Next;
         if (prev is null)
         {
             Head = next;
@@ -140,13 +114,9 @@ public class YStructure : IYStructure<YStructureNode, XStructureNode>
 
 public class YStructureNode : IYStructureNode<YStructureNode, XStructureNode>
 {
-    private static int _currentId;
-    
-    public Segment Value { get; set; }
+    public List<Segment>? Value { get; set; }
     
     public YStructureNode? Next { get; set; }
     
     public YStructureNode? Previous { get; set; }
-
-    public int UniqueId { get; } = _currentId++;
 }

@@ -6,11 +6,9 @@ public interface IYStructureNode<TYStructureNode, TEventPoint>
     where TYStructureNode : class, IYStructureNode<TYStructureNode, TEventPoint>
     where TEventPoint : class, IEventPoint<TEventPoint, TYStructureNode>
 {
-    public Segment Value { get; }
+    public List<Segment>? Value { get; set; }
     
     public TYStructureNode? Next { get; }
     
     public TYStructureNode? Previous { get; }
-    
-    public int UniqueId { get; }
 }
