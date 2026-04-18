@@ -2,14 +2,12 @@ using System.Collections;
 
 namespace SweepLine.DataStructures;
 
-public class SubsequenceIterator<TYStructureNode, TEventPoint>(
-    (TYStructureNode Start, TYStructureNode End) subsequence,
+public class SubsequenceIterator(
+    (IYStructureNode Start, IYStructureNode End) subsequence,
     bool reversed = false)
-    : IEnumerable<TYStructureNode>
-    where TYStructureNode : class, IYStructureNode<TYStructureNode, TEventPoint>
-    where TEventPoint : class, IEventPoint<TEventPoint, TYStructureNode>
+    : IEnumerable<IYStructureNode>
 {
-    public IEnumerator<TYStructureNode> GetEnumerator()
+    public IEnumerator<IYStructureNode> GetEnumerator()
     {
         var start = reversed ? subsequence.End : subsequence.Start;
         var end = reversed ? subsequence.Start : subsequence.End;

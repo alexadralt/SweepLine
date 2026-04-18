@@ -8,7 +8,7 @@ public class SweepLineProcessorTests
 {
     private static Dictionary<Point, List<Segment>> SegmentSubsequenceEvents { get; } = [];
     
-    private class SweepLineTestVisitor : ISweepLineVisitor<XStructureNode, YStructureNode>
+    private class SweepLineTestVisitor : ISweepLineVisitor
     {
         public void VisitIntersectingSegments(Point point, IEnumerable<IEnumerable<Segment>> segments)
         {
@@ -27,8 +27,7 @@ public class SweepLineProcessorTests
     [Test]
     public void Test1()
     {
-        var processor = new SweepLineProcessor<XStructure, YStructure, XStructureNode, YStructureNode>(
-                new XStructure(), new YStructure());
+        var processor = new SweepLineProcessor(new XStructure(), new YStructure());
         
         processor.AddSegments(new List<Segment>
         {

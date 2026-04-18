@@ -3,11 +3,11 @@ using SweepLine.Primitives;
 
 namespace SweepLine.DataStructuresLinkedListImpl;
 
-public class YStructure : IYStructure<YStructureNode, XStructureNode>
+public class YStructure : IYStructure
 {
     private YStructureNode? Head { get; set; }
     
-    public void ReverseSubSequence((YStructureNode start, YStructureNode end) subsequence)
+    public void ReverseSubSequence((IYStructureNode start, IYStructureNode end) subsequence)
     {
         if (subsequence.start == subsequence.end)
         {
@@ -16,31 +16,31 @@ public class YStructure : IYStructure<YStructureNode, XStructureNode>
 
         if (subsequence.start == Head)
         {
-            Head = subsequence.end;
+            Head = (YStructureNode)subsequence.end;
         }
         
-        var rightEdge = subsequence.end.Next;
-        var leftEdge = subsequence.start.Previous;
+        var rightEdge = ((YStructureNode)subsequence.end).NextNode;
+        var leftEdge = ((YStructureNode)subsequence.start).PreviousNode;
 
-        leftEdge?.Next = subsequence.end;
+        leftEdge?.NextNode = (YStructureNode)subsequence.end;
 
         var accumulator = rightEdge;
-        var current = subsequence.start;
+        var current = (YStructureNode)subsequence.start;
 
         while (current != rightEdge)
         {
-            var nextCurrent = current!.Next;
+            var nextCurrent = current!.NextNode;
             
-            current.Previous = leftEdge;
-            current.Next = accumulator;
-            accumulator?.Previous = current;
+            current.PreviousNode = leftEdge;
+            current.NextNode = accumulator;
+            accumulator?.PreviousNode = current;
 
             accumulator = current;
             current = nextCurrent;
         }
     }
 
-    public YStructureNode FindOrCreateNode(Segment segment, SegmentComparator cmp)
+    public IYStructureNode FindOrCreateNode(Segment segment, SegmentComparator cmp)
     {
         if (Head is null)
         {
@@ -66,57 +66,62 @@ public class YStructure : IYStructure<YStructureNode, XStructureNode>
                     var oldHead = Head;
                     Head = new YStructureNode
                     {
-                        Next = oldHead,
+                        NextNode = oldHead,
                     };
-                    oldHead.Previous = Head;
+                    oldHead.PreviousNode = Head;
 
                     return Head;
                 }
 
-                prev.Next = new YStructureNode
+                prev.NextNode = new YStructureNode
                 {
-                    Next = current,
-                    Previous = prev,
+                    NextNode = current,
+                    PreviousNode = prev,
                 };
-                current.Previous = prev.Next;
-                return prev.Next;
+                current.PreviousNode = prev.NextNode;
+                return prev.NextNode;
             }
 
             prev = current;
-            current = current.Next;
+            current = current.NextNode;
 
             if (current is null)
             {
-                prev.Next = new YStructureNode
+                prev.NextNode = new YStructureNode
                 {
-                    Previous = prev,
+                    PreviousNode = prev,
                 };
-                return prev.Next;
+                return prev.NextNode;
             }
         }
     }
 
-    public void RemoveNode(YStructureNode node)
+    public void RemoveNode(IYStructureNode node)
     {
-        var prev = node.Previous;
-        var next = node.Next;
+        var yStructureNode = (YStructureNode)node;
+        var prev = yStructureNode.PreviousNode;
+        var next = yStructureNode.NextNode;
         if (prev is null)
         {
             Head = next;
-            next?.Previous = null;
+            next?.PreviousNode = null;
             return;
         }
 
-        prev.Next = next;
-        next?.Previous = prev;
+        prev.NextNode = next;
+        next?.PreviousNode = prev;
     }
 }
 
-public class YStructureNode : IYStructureNode<YStructureNode, XStructureNode>
+public class YStructureNode : IYStructureNode
 {
+    public YStructureNode? NextNode { get; set; }
+    
+    public YStructureNode? PreviousNode { get; set; }
+    
     public List<Segment>? Value { get; set; }
-    
-    public YStructureNode? Next { get; set; }
-    
-    public YStructureNode? Previous { get; set; }
+
+    public IYStructureNode? Next => NextNode;
+
+    public IYStructureNode? Previous => PreviousNode;
 }

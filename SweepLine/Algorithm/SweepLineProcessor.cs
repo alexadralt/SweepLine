@@ -4,13 +4,7 @@ using SweepLine.Primitives;
 
 namespace SweepLine.Algorithm;
 
-public class SweepLineProcessor<TXStructure, TYStructure, TEventPoint, TYStructureNode>(
-    TXStructure xStructure,
-    TYStructure yStructure)
-    where TEventPoint : class, IEventPoint<TEventPoint, TYStructureNode>
-    where TYStructureNode : class, IYStructureNode<TYStructureNode, TEventPoint>
-    where TXStructure : class, IXStructure<TEventPoint, TYStructureNode>
-    where TYStructure : class, IYStructure<TYStructureNode, TEventPoint>
+public class SweepLineProcessor(IXStructure xStructure, IYStructure yStructure)
 {
     private Dictionary<Point, List<Segment>> SegmentStart { get; } = new();
     
@@ -26,7 +20,7 @@ public class SweepLineProcessor<TXStructure, TYStructure, TEventPoint, TYStructu
         }
     }
 
-    public void Process(ISweepLineVisitor<TEventPoint, TYStructureNode> visitor)
+    public void Process(ISweepLineVisitor visitor)
     {
         while (xStructure.Take(out var eventPoint))
         {
@@ -35,14 +29,14 @@ public class SweepLineProcessor<TXStructure, TYStructure, TEventPoint, TYStructu
             var intersectingSegments = new List<List<Segment>>();
             
             // note(shevyrin): we need to defer removal of overlapping segments that end in current point, so that we can pass them correctly to the visitor
-            var overlappingSegmentsToRemove = new List<(TYStructureNode, List<int>)>();
+            var overlappingSegmentsToRemove = new List<(IYStructureNode, List<int>)>();
 
             if (subsequence.HasValue)
             {
-                var nodesToRemove = new List<TYStructureNode>();
-                var nodesToKeep = new List<TYStructureNode>();
+                var nodesToRemove = new List<IYStructureNode>();
+                var nodesToKeep = new List<IYStructureNode>();
 
-                foreach (var node in new SubsequenceIterator<TYStructureNode, TEventPoint>(subsequence.Value))
+                foreach (var node in new SubsequenceIterator(subsequence.Value))
                 {
                     if (node.Value![0].EndPoint == eventPoint.Value)
                     {
@@ -74,7 +68,7 @@ public class SweepLineProcessor<TXStructure, TYStructure, TEventPoint, TYStructu
 
                     eventPoint.Referenced = subsequence.Value.Start;
 
-                    foreach (var node in new SubsequenceIterator<TYStructureNode, TEventPoint>(subsequence.Value))
+                    foreach (var node in new SubsequenceIterator(subsequence.Value))
                     {
                         var indicesToRemove = new List<int>();
                         
@@ -105,7 +99,7 @@ public class SweepLineProcessor<TXStructure, TYStructure, TEventPoint, TYStructu
             var segmentsToAdd = SegmentStart.GetValueOrDefault(eventPoint.Value);
             if (segmentsToAdd is not null)
             {
-                var insertedNodes = new List<TYStructureNode>();
+                var insertedNodes = new List<IYStructureNode>();
                 
                 foreach (var segment in segmentsToAdd)
                 {
@@ -169,7 +163,7 @@ public class SweepLineProcessor<TXStructure, TYStructure, TEventPoint, TYStructu
         }
     }
 
-    private (TYStructureNode Start, TYStructureNode End)? FindSubsequence(TEventPoint eventPoint)
+    private (IYStructureNode Start, IYStructureNode End)? FindSubsequence(IEventPoint eventPoint)
     {
         var start = eventPoint.Referenced;
         if (start is null)
@@ -195,9 +189,9 @@ public class SweepLineProcessor<TXStructure, TYStructure, TEventPoint, TYStructu
     }
 
     private void AddIntersectionEvent(
-        TYStructureNode bottom,
-        TYStructureNode top,
-        TEventPoint eventPoint,
+        IYStructureNode bottom,
+        IYStructureNode top,
+        IEventPoint eventPoint,
         SegmentComparator comparator)
     {
         var intersection = Segment.FindIntersection(bottom.Value![0], top.Value![0]);
@@ -212,7 +206,7 @@ public class SweepLineProcessor<TXStructure, TYStructure, TEventPoint, TYStructu
         }
     }
 
-    private void InsertEventPoint(Point point, TYStructureNode node, SegmentComparator comparator)
+    private void InsertEventPoint(Point point, IYStructureNode node, SegmentComparator comparator)
     {
         var eventPoint = xStructure.FindOrDefault(point);
         if (eventPoint is not null)

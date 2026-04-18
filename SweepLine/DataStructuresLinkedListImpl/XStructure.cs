@@ -3,11 +3,11 @@ using SweepLine.Primitives;
 
 namespace SweepLine.DataStructuresLinkedListImpl;
 
-public class XStructure : IXStructure<XStructureNode, YStructureNode>
+public class XStructure : IXStructure
 {
     private XStructureNode? Head { get; set; }
 
-    public XStructureNode Insert(Point point)
+    public IEventPoint Insert(Point point)
     {
         if (Head is null)
         {
@@ -80,7 +80,7 @@ public class XStructure : IXStructure<XStructureNode, YStructureNode>
         }
     }
 
-    public bool Take(out XStructureNode eventPoint)
+    public bool Take(out IEventPoint eventPoint)
     {
         var head = Head;
         var next = Head?.Next;
@@ -90,7 +90,7 @@ public class XStructure : IXStructure<XStructureNode, YStructureNode>
         return head is not null;
     }
 
-    public XStructureNode? FindOrDefault(Point point)
+    public IEventPoint? FindOrDefault(Point point)
     {
         var current = Head;
         while (current is not null)
@@ -107,11 +107,11 @@ public class XStructure : IXStructure<XStructureNode, YStructureNode>
     }
 }
 
-public class XStructureNode : IEventPoint<XStructureNode, YStructureNode>
+public class XStructureNode : IEventPoint
 {
     public Point Value { get; init; }
     
-    public YStructureNode? Referenced { get; set; }
+    public IYStructureNode? Referenced { get; set; }
 
     public XStructureNode? Next { get; set; }
 }
