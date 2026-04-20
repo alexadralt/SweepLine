@@ -26,21 +26,64 @@ public class SweepLineProcessorTests
 
     private void CheckIntersections(List<Segment> segments)
     {
-        var expectedIntersections = new Dictionary<Point, HashSet<Segment>>();
+        var expectedIntersections = new Dictionary<Point, List<Segment>>();
+
+        var visitedPoints = new HashSet<Point>();
+        var addedIndices = new Dictionary<Point, HashSet<int>>();
         
         for (var i = 0; i < segments.Count; i++)
         {
-            AddSegment(expectedIntersections, segments[i].StartPoint, segments[i]);
-            AddSegment(expectedIntersections, segments[i].EndPoint, segments[i]);
+            var startPoint = segments[i].StartPoint;
+            var endPoint = segments[i].EndPoint;
             
+            foreach (var segment in segments)
+            {
+                if (!visitedPoints.Contains(startPoint) && SegmentContainsPoint(segment, startPoint))
+                {
+                    AddSegment(expectedIntersections, startPoint, segment);
+                }
+                
+                if (!visitedPoints.Contains(endPoint) && SegmentContainsPoint(segment, endPoint))
+                {
+                    AddSegment(expectedIntersections, endPoint, segment);
+                }
+            }
+
+            visitedPoints.Add(startPoint);
+            visitedPoints.Add(endPoint);
+
             for (var j = i + 1; j < segments.Count; j++)
             {
-                var intersectiomResult = Segment.FindIntersection(segments[i], segments[j]);
+                var intersectionResult = Segment.FindIntersection(segments[i], segments[j]);
 
-                if (intersectiomResult.Type == IntersectionType.Point)
+                if (intersectionResult.Type == IntersectionType.Point)
                 {
-                    AddSegment(expectedIntersections, intersectiomResult.Point, segments[i]);
-                    AddSegment(expectedIntersections, intersectiomResult.Point, segments[j]);
+                    var indices = addedIndices.GetValueOrDefault(intersectionResult.Point);
+                    if (indices is null)
+                    {
+                        indices = new HashSet<int>();
+                        addedIndices[intersectionResult.Point] = indices;
+                    }
+                    
+                    if (intersectionResult.Point != segments[i].StartPoint
+                        && intersectionResult.Point != segments[i].EndPoint)
+                    {
+                        if (!indices.Contains(i))
+                        {
+                            AddSegment(expectedIntersections, intersectionResult.Point, segments[i]);
+                            indices.Add(i);
+                        }
+                    }
+
+                    if (intersectionResult.Point != segments[j].StartPoint
+                        && intersectionResult.Point != segments[j].EndPoint)
+                    {
+                        if (!indices.Contains(j))
+                        {
+                            AddSegment(expectedIntersections, intersectionResult.Point, segments[j]);
+                            indices.Add(j);
+                        }
+                    }
                 }
             }
         }
@@ -56,21 +99,39 @@ public class SweepLineProcessorTests
                 }
             }
         }
-        
-        return;
 
-        void AddSegment(Dictionary<Point, HashSet<Segment>> intersections, Point point, Segment segment)
+        Assert.That(SegmentEvents.Count, Is.EqualTo(expectedIntersections.Count));
+        foreach (var (point, expectation) in expectedIntersections)
         {
-            var intersecting = intersections.GetValueOrDefault(point);
-            if (intersecting is not null)
-            {
-                intersecting.Add(segment);
-            }
-            else
-            {
-                expectedIntersections[point] = [segment];
-            }
+            Assert.That(SegmentEvents[point].Count, Is.EqualTo(expectation.Count));
         }
+    }
+    
+    private void AddSegment(Dictionary<Point, List<Segment>> intersections, Point point, Segment segment)
+    {
+        var intersecting = intersections.GetValueOrDefault(point);
+        if (intersecting is not null)
+        {
+            intersecting.Add(segment);
+        }
+        else
+        {
+            intersections[point] = [segment];
+        }
+    }
+
+    private bool SegmentContainsPoint(Segment segment, Point point)
+    {
+        if (point == segment.StartPoint)
+        {
+            return true;
+        }
+        
+        var segmentToCheck = segment with { EndPoint = point };
+        var intersectionResult = Segment.FindIntersection(segmentToCheck, segment);
+        
+        return intersectionResult.Type == IntersectionType.SubSegment &&
+               intersectionResult.SubSegment.EndPoint >= point;
     }
 
     [Test]
@@ -157,6 +218,39 @@ public class SweepLineProcessorTests
                     X = 3.5, Y = 5,
                 }
             },
+            new()
+            {
+                StartPoint = new Point
+                {
+                    X = 3.2, Y = 3.2,
+                },
+                EndPoint = new Point
+                {
+                    X = 6, Y = 2,
+                },
+            },
+            new()
+            {
+                StartPoint = new Point
+                {
+                    X = 0, Y = 4,
+                },
+                EndPoint = new Point
+                {
+                    X = 5, Y = 4,
+                },
+            },
+            new()
+            {
+                StartPoint = new Point
+                {
+                    X = 0, Y = 4,
+                },
+                EndPoint = new Point
+                {
+                    X = 5, Y = 4,
+                },
+            }, // same twice. intentional
         };
         
         processor.AddSegments(segments);
