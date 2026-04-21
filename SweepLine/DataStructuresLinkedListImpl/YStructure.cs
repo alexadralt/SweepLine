@@ -3,11 +3,12 @@ using SweepLine.Primitives;
 
 namespace SweepLine.DataStructuresLinkedListImpl;
 
-public class YStructure : IYStructure
+public class YStructure<TSegment> : IYStructure<TSegment>
+    where TSegment : Segment
 {
-    private YStructureNode? Head { get; set; }
+    private YStructureNode<TSegment>? Head { get; set; }
     
-    public void ReverseSubSequence((YStructureNodeBase start, YStructureNodeBase end) subsequence)
+    public void ReverseSubSequence((YStructureNodeBase<TSegment> start, YStructureNodeBase<TSegment> end) subsequence)
     {
         if (subsequence.start == subsequence.end)
         {
@@ -16,16 +17,16 @@ public class YStructure : IYStructure
 
         if (subsequence.start == Head)
         {
-            Head = (YStructureNode)subsequence.end;
+            Head = (YStructureNode<TSegment>)subsequence.end;
         }
         
-        var rightEdge = ((YStructureNode)subsequence.end).NextNode;
-        var leftEdge = ((YStructureNode)subsequence.start).PreviousNode;
+        var rightEdge = ((YStructureNode<TSegment>)subsequence.end).NextNode;
+        var leftEdge = ((YStructureNode<TSegment>)subsequence.start).PreviousNode;
 
-        leftEdge?.NextNode = (YStructureNode)subsequence.end;
+        leftEdge?.NextNode = (YStructureNode<TSegment>)subsequence.end;
 
         var accumulator = rightEdge;
-        var current = (YStructureNode)subsequence.start;
+        var current = (YStructureNode<TSegment>)subsequence.start;
 
         while (current != rightEdge)
         {
@@ -40,16 +41,16 @@ public class YStructure : IYStructure
         }
     }
 
-    public YStructureNodeBase FindOrCreateNode(Segment segment, SegmentComparator cmp)
+    public YStructureNodeBase<TSegment> FindOrCreateNode(Segment segment, SegmentComparator cmp)
     {
         if (Head is null)
         {
-            Head = new YStructureNode();
+            Head = new YStructureNode<TSegment>();
             return Head;
         }
 
         var current = Head;
-        YStructureNode? prev = null;
+        YStructureNode<TSegment>? prev = null;
         while (true)
         {
             var cmpResult = cmp.Compare(current.Value[0], segment);
@@ -64,7 +65,7 @@ public class YStructure : IYStructure
                 if (prev is null)
                 {
                     var oldHead = Head;
-                    Head = new YStructureNode
+                    Head = new YStructureNode<TSegment>
                     {
                         NextNode = oldHead,
                     };
@@ -73,7 +74,7 @@ public class YStructure : IYStructure
                     return Head;
                 }
 
-                prev.NextNode = new YStructureNode
+                prev.NextNode = new YStructureNode<TSegment>
                 {
                     NextNode = current,
                     PreviousNode = prev,
@@ -87,7 +88,7 @@ public class YStructure : IYStructure
 
             if (current is null)
             {
-                prev.NextNode = new YStructureNode
+                prev.NextNode = new YStructureNode<TSegment>
                 {
                     PreviousNode = prev,
                 };
@@ -96,9 +97,9 @@ public class YStructure : IYStructure
         }
     }
 
-    public void RemoveNode(YStructureNodeBase nodeBase)
+    public void RemoveNode(YStructureNodeBase<TSegment> nodeBase)
     {
-        var yStructureNode = (YStructureNode)nodeBase;
+        var yStructureNode = (YStructureNode<TSegment>)nodeBase;
         var prev = yStructureNode.PreviousNode;
         var next = yStructureNode.NextNode;
         if (prev is null)
@@ -113,13 +114,14 @@ public class YStructure : IYStructure
     }
 }
 
-public class YStructureNode : YStructureNodeBase
+public class YStructureNode<TSegment> : YStructureNodeBase<TSegment>
+    where TSegment : Segment
 {
-    public YStructureNode? NextNode { get; set; }
+    public YStructureNode<TSegment>? NextNode { get; set; }
     
-    public YStructureNode? PreviousNode { get; set; }
+    public YStructureNode<TSegment>? PreviousNode { get; set; }
     
-    public override YStructureNodeBase? Next => NextNode;
+    public override YStructureNodeBase<TSegment>? Next => NextNode;
 
-    public override YStructureNodeBase? Previous => PreviousNode;
+    public override YStructureNodeBase<TSegment>? Previous => PreviousNode;
 }

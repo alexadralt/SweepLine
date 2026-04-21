@@ -117,7 +117,12 @@ public class SweepLineProcessorTests
             return true;
         }
         
-        var segmentToCheck = segment with { EndPoint = point };
+        var segmentToCheck = new Segment
+        {
+            StartPoint = segment.StartPoint,
+            EndPoint = point
+        };
+        
         var intersectionResult = Segment.FindIntersection(segmentToCheck, segment);
         
         return intersectionResult.Type == IntersectionType.SubSegment &&
@@ -127,7 +132,7 @@ public class SweepLineProcessorTests
     [Test]
     public void Test1()
     {
-        var processor = new SweepLineProcessor(new XStructure(), new YStructure());
+        var processor = new SweepLineProcessor<Segment>(new XStructure<Segment>(), new YStructure<Segment>());
 
         var segments = new List<Segment>
         {

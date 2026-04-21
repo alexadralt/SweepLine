@@ -2,11 +2,12 @@ using SweepLine.Primitives;
 
 namespace SweepLine.DataStructures;
 
-public abstract class YStructureNodeBase
+public abstract class YStructureNodeBase<TSegment>
+    where TSegment : Segment
 {
-    public List<Segment> Value { get; } = [];
+    public List<TSegment> Value { get; } = [];
     
-    public abstract YStructureNodeBase? Next { get; }
+    public abstract YStructureNodeBase<TSegment>? Next { get; }
     
-    public abstract YStructureNodeBase? Previous { get; }
+    public abstract YStructureNodeBase<TSegment>? Previous { get; }
 }

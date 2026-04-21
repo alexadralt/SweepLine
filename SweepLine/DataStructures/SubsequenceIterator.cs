@@ -1,13 +1,15 @@
 using System.Collections;
+using SweepLine.Primitives;
 
 namespace SweepLine.DataStructures;
 
-public class SubsequenceIterator(
-    (YStructureNodeBase Start, YStructureNodeBase End) subsequence,
+public class SubsequenceIterator<TSegment>(
+    (YStructureNodeBase<TSegment> Start, YStructureNodeBase<TSegment> End) subsequence,
     bool reversed = false)
-    : IEnumerable<YStructureNodeBase>
+    : IEnumerable<YStructureNodeBase<TSegment>>
+    where TSegment : Segment
 {
-    public IEnumerator<YStructureNodeBase> GetEnumerator()
+    public IEnumerator<YStructureNodeBase<TSegment>> GetEnumerator()
     {
         var start = reversed ? subsequence.End : subsequence.Start;
         var end = reversed ? subsequence.Start : subsequence.End;

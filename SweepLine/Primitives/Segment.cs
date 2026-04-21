@@ -1,6 +1,6 @@
 namespace SweepLine.Primitives;
 
-public readonly struct Segment : IEquatable<Segment>
+public class Segment : IEquatable<Segment>
 {
     public required Point StartPoint { get; init; }
     
@@ -69,8 +69,8 @@ public readonly struct Segment : IEquatable<Segment>
         };
     }
 
-    public bool Equals(Segment other) => 
-        StartPoint.Equals(other.StartPoint) && EndPoint.Equals(other.EndPoint);
+    public bool Equals(Segment? other) => 
+        other is not null && StartPoint.Equals(other.StartPoint) && EndPoint.Equals(other.EndPoint);
 
     public override bool Equals(object? obj) => obj is Segment other && Equals(other);
 
@@ -81,9 +81,9 @@ public readonly struct Segment : IEquatable<Segment>
         return $"[{StartPoint} - {EndPoint}]";
     }
 
-    public static bool operator ==(Segment left, Segment right) => left.Equals(right);
+    public static bool operator ==(Segment? left, Segment? right) => left?.Equals(right) ?? right is null;
 
-    public static bool operator !=(Segment left, Segment right) => !left.Equals(right);
+    public static bool operator !=(Segment? left, Segment? right) => !left?.Equals(right) ?? right is null;
 }
 
 public enum IntersectionType

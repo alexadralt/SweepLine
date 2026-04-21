@@ -3,15 +3,16 @@ using SweepLine.Primitives;
 
 namespace SweepLine.DataStructuresLinkedListImpl;
 
-public class XStructure : IXStructure
+public class XStructure<TSegment> : IXStructure<TSegment>
+    where TSegment : Segment
 {
-    private XStructureNode? Head { get; set; }
+    private XStructureNode<TSegment>? Head { get; set; }
 
-    public IEventPoint Insert(Point point)
+    public IEventPoint<TSegment> Insert(Point point)
     {
         if (Head is null)
         {
-            Head = new XStructureNode
+            Head = new XStructureNode<TSegment>
             {
                 Value = point,
             };
@@ -19,7 +20,7 @@ public class XStructure : IXStructure
         }
 
         var current = Head;
-        XStructureNode? prev = null;
+        XStructureNode<TSegment>? prev = null;
         while (true)
         {
             if (current.Value == point)
@@ -32,7 +33,7 @@ public class XStructure : IXStructure
                 if (prev is null)
                 {
                     var nextNode = Head;
-                    Head = new XStructureNode
+                    Head = new XStructureNode<TSegment>
                     {
                         Value = point,
                         Next = nextNode,
@@ -41,7 +42,7 @@ public class XStructure : IXStructure
                     return Head;
                 }
 
-                prev.Next = new XStructureNode
+                prev.Next = new XStructureNode<TSegment>
                 {
                     Value = point,
                     Next = current,
@@ -54,7 +55,7 @@ public class XStructure : IXStructure
 
             if (current is null)
             {
-                prev.Next = new XStructureNode
+                prev.Next = new XStructureNode<TSegment>
                 {
                     Value = point,
                 };
@@ -63,7 +64,7 @@ public class XStructure : IXStructure
         }
     }
 
-    public bool Take(out IEventPoint eventPoint)
+    public bool Take(out IEventPoint<TSegment> eventPoint)
     {
         var head = Head;
         var next = Head?.Next;
@@ -73,7 +74,7 @@ public class XStructure : IXStructure
         return head is not null;
     }
 
-    public IEventPoint? FindOrDefault(Point point)
+    public IEventPoint<TSegment>? FindOrDefault(Point point)
     {
         var current = Head;
         while (current is not null)
@@ -90,13 +91,14 @@ public class XStructure : IXStructure
     }
 }
 
-public class XStructureNode : IEventPoint
+public class XStructureNode<TSegment> : IEventPoint<TSegment>
+    where TSegment : Segment
 {
     public Point Value { get; init; }
     
-    public YStructureNodeBase? MinNode { get; set; }
+    public YStructureNodeBase<TSegment>? MinNode { get; set; }
     
-    public YStructureNodeBase? MaxNode { get; set; }
+    public YStructureNodeBase<TSegment>? MaxNode { get; set; }
 
-    public XStructureNode? Next { get; set; }
+    public XStructureNode<TSegment>? Next { get; set; }
 }

@@ -2,11 +2,12 @@ using SweepLine.Primitives;
 
 namespace SweepLine.DataStructures;
 
-public interface IXStructure
+public interface IXStructure<TSegment>
+    where TSegment : Segment
 {
-    public IEventPoint Insert(Point point);
+    public IEventPoint<TSegment> Insert(Point point);
 
-    public bool Take(out IEventPoint eventPoint);
+    public bool Take(out IEventPoint<TSegment> eventPoint);
 
-    public IEventPoint? FindOrDefault(Point point);
+    public IEventPoint<TSegment>? FindOrDefault(Point point);
 }
