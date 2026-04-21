@@ -27,62 +27,45 @@ public class SweepLineProcessorTests
     private void CheckIntersections(List<Segment> segments)
     {
         var expectedIntersections = new Dictionary<Point, List<Segment>>();
+        var foundIndices = new Dictionary<Point, HashSet<int>>();
 
-        var visitedPoints = new HashSet<Point>();
-        var addedIndices = new Dictionary<Point, HashSet<int>>();
-        
         for (var i = 0; i < segments.Count; i++)
         {
-            var startPoint = segments[i].StartPoint;
-            var endPoint = segments[i].EndPoint;
+            AddSegment(segments[i].StartPoint, segments, i);
+            AddSegment(segments[i].EndPoint, segments, i);
             
-            foreach (var segment in segments)
-            {
-                if (!visitedPoints.Contains(startPoint) && SegmentContainsPoint(segment, startPoint))
-                {
-                    AddSegment(expectedIntersections, startPoint, segment);
-                }
-                
-                if (!visitedPoints.Contains(endPoint) && SegmentContainsPoint(segment, endPoint))
-                {
-                    AddSegment(expectedIntersections, endPoint, segment);
-                }
-            }
-
-            visitedPoints.Add(startPoint);
-            visitedPoints.Add(endPoint);
-
             for (var j = i + 1; j < segments.Count; j++)
             {
-                var intersectionResult = Segment.FindIntersection(segments[i], segments[j]);
+                var intersectiomResult = Segment.FindIntersection(segments[i], segments[j]);
 
-                if (intersectionResult.Type == IntersectionType.Point)
+                if (intersectiomResult.Type == IntersectionType.Point)
                 {
-                    var indices = addedIndices.GetValueOrDefault(intersectionResult.Point);
-                    if (indices is null)
+                    AddSegment(intersectiomResult.Point, segments, i);
+                    AddSegment(intersectiomResult.Point, segments, j);
+                }
+                else if (intersectiomResult.Type == IntersectionType.SubSegment)
+                {
+                    var a = intersectiomResult.SubSegment.StartPoint;
+                    var b = intersectiomResult.SubSegment.EndPoint;
+
+                    if (SegmentContainsPoint(segments[i], a))
                     {
-                        indices = new HashSet<int>();
-                        addedIndices[intersectionResult.Point] = indices;
+                        AddSegment(a, segments, i);
+                    }
+
+                    if (SegmentContainsPoint(segments[i], b))
+                    {
+                        AddSegment(b, segments, i);
                     }
                     
-                    if (intersectionResult.Point != segments[i].StartPoint
-                        && intersectionResult.Point != segments[i].EndPoint)
+                    if (SegmentContainsPoint(segments[j], a))
                     {
-                        if (!indices.Contains(i))
-                        {
-                            AddSegment(expectedIntersections, intersectionResult.Point, segments[i]);
-                            indices.Add(i);
-                        }
+                        AddSegment(a, segments, j);
                     }
 
-                    if (intersectionResult.Point != segments[j].StartPoint
-                        && intersectionResult.Point != segments[j].EndPoint)
+                    if (SegmentContainsPoint(segments[j], b))
                     {
-                        if (!indices.Contains(j))
-                        {
-                            AddSegment(expectedIntersections, intersectionResult.Point, segments[j]);
-                            indices.Add(j);
-                        }
+                        AddSegment(b, segments, j);
                     }
                 }
             }
@@ -105,18 +88,25 @@ public class SweepLineProcessorTests
         {
             Assert.That(SegmentEvents[point].Count, Is.EqualTo(expectation.Count));
         }
-    }
-    
-    private void AddSegment(Dictionary<Point, List<Segment>> intersections, Point point, Segment segment)
-    {
-        var intersecting = intersections.GetValueOrDefault(point);
-        if (intersecting is not null)
+
+        return;
+        
+        void AddSegment(Point point, List<Segment> allSegments, int segmentIndex)
         {
-            intersecting.Add(segment);
-        }
-        else
-        {
-            intersections[point] = [segment];
+            var intersecting = expectedIntersections.GetValueOrDefault(point);
+            if (intersecting is not null)
+            {
+                var isNew = foundIndices[point].Add(segmentIndex);
+                if (isNew)
+                {
+                    intersecting.Add(allSegments[segmentIndex]);
+                }
+            }
+            else
+            {
+                foundIndices[point] = [segmentIndex];
+                expectedIntersections[point] = [allSegments[segmentIndex]];
+            }
         }
     }
 
@@ -251,6 +241,39 @@ public class SweepLineProcessorTests
                     X = 5, Y = 4,
                 },
             }, // same twice. intentional
+            new()
+            {
+                StartPoint = new Point
+                {
+                    X = 1.3333333333333, Y = 2,
+                },
+                EndPoint = new Point
+                {
+                    X = 3.6666666666667, Y = 4,
+                }
+            },
+            new()
+            {
+                StartPoint = new Point
+                {
+                    X = 1.5, Y = 4.5,
+                },
+                EndPoint = new Point
+                {
+                    X = 3, Y = 2,
+                },
+            },
+            new()
+            {
+                StartPoint = new Point
+                {
+                    X = 1.8, Y = 2.4,
+                },
+                EndPoint = new Point
+                {
+                    X = 3.2, Y = 3.6,
+                },
+            },
         };
         
         processor.AddSegments(segments);
