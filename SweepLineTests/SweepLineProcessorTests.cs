@@ -8,7 +8,7 @@ public class SweepLineProcessorTests
 {
     private static Dictionary<Point, List<Segment>> SegmentEvents { get; } = [];
     
-    private class SweepLineTestVisitor : ISweepLineVisitor
+    private class SweepLineTestVisitor : ISweepLineVisitor<Segment>
     {
         public void VisitIntersectingSegments(Point point, IEnumerable<IEnumerable<Segment>> segments)
         {

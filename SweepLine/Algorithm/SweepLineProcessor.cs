@@ -21,7 +21,7 @@ public class SweepLineProcessor<TSegment>(IXStructure<TSegment> xStructure, IYSt
         }
     }
 
-    public void Process(ISweepLineVisitor visitor)
+    public void Process(ISweepLineVisitor<TSegment> visitor)
     {
         while (xStructure.Take(out var eventPoint))
         {
