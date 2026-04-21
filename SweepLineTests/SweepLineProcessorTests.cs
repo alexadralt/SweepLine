@@ -274,6 +274,17 @@ public class SweepLineProcessorTests
                     X = 3.2, Y = 3.6,
                 },
             },
+            new()
+            {
+                StartPoint = new Point
+                {
+                    X = 0.9, Y = 5.5,
+                },
+                EndPoint = new Point
+                {
+                    X = 2.1, Y = 3.5,
+                },
+            },
         };
         
         processor.AddSegments(segments);
