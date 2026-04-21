@@ -3,11 +3,11 @@ using System.Collections;
 namespace SweepLine.DataStructures;
 
 public class SubsequenceIterator(
-    (IYStructureNode Start, IYStructureNode End) subsequence,
+    (YStructureNodeBase Start, YStructureNodeBase End) subsequence,
     bool reversed = false)
-    : IEnumerable<IYStructureNode>
+    : IEnumerable<YStructureNodeBase>
 {
-    public IEnumerator<IYStructureNode> GetEnumerator()
+    public IEnumerator<YStructureNodeBase> GetEnumerator()
     {
         var start = reversed ? subsequence.End : subsequence.Start;
         var end = reversed ? subsequence.Start : subsequence.End;

@@ -29,16 +29,16 @@ public class SweepLineProcessor(IXStructure xStructure, IYStructure yStructure)
             var intersectingSegments = new List<List<Segment>>();
             
             // note(shevyrin): we need to defer removal of overlapping segments that end in current point, so that we can pass them correctly to the visitor
-            var overlappingSegmentsToRemove = new List<(IYStructureNode, List<int>)>();
+            var overlappingSegmentsToRemove = new List<(YStructureNodeBase, List<int>)>();
 
             if (subsequence.MinNode is not null)
             {
-                var nodesToRemove = new List<IYStructureNode>();
-                var nodesToKeep = new List<IYStructureNode>();
+                var nodesToRemove = new List<YStructureNodeBase>();
+                var nodesToKeep = new List<YStructureNodeBase>();
 
                 foreach (var node in new SubsequenceIterator(subsequence!))
                 {
-                    if (node.Value![0].EndPoint == eventPoint.Value)
+                    if (node.Value[0].EndPoint == eventPoint.Value)
                     {
                         nodesToRemove.Add(node);
                     }
@@ -52,7 +52,7 @@ public class SweepLineProcessor(IXStructure xStructure, IYStructure yStructure)
                 {
                     foreach (var node in nodesToRemove)
                     {
-                        intersectingSegments.Add(node.Value!);
+                        intersectingSegments.Add(node.Value);
                         yStructure.RemoveNode(node);
                     }
                 }
@@ -71,9 +71,9 @@ public class SweepLineProcessor(IXStructure xStructure, IYStructure yStructure)
                     {
                         var indicesToRemove = new List<int>();
                         
-                        for (var i = 0; i < node.Value!.Count; i++)
+                        for (var i = 0; i < node.Value.Count; i++)
                         {
-                            var segment = node.Value![i];
+                            var segment = node.Value[i];
                             if (segment.EndPoint == eventPoint.Value)
                             {
                                 indicesToRemove.Add(i);
@@ -85,7 +85,7 @@ public class SweepLineProcessor(IXStructure xStructure, IYStructure yStructure)
                             overlappingSegmentsToRemove.Add((node, indicesToRemove));
                         }
                         
-                        intersectingSegments.Add(node.Value!);
+                        intersectingSegments.Add(node.Value);
                     }
                 }
                 else
@@ -99,49 +99,43 @@ public class SweepLineProcessor(IXStructure xStructure, IYStructure yStructure)
             var segmentsToAdd = SegmentStart.GetValueOrDefault(eventPoint.Value);
             if (segmentsToAdd is not null)
             {
-                var insertedNodes = new HashSet<IYStructureNode>(
-                    EqualityComparer<IYStructureNode>.Create(
-                        (nodeA, nodeB) => nodeA?.Value![0] == nodeB?.Value![0],
-                        node => node.Value![0].GetHashCode()));
+                var insertedNodes = new HashSet<YStructureNodeBase>(
+                    EqualityComparer<YStructureNodeBase>.Create(
+                        (nodeA, nodeB) => nodeA?.Value[0] == nodeB?.Value[0],
+                        node => node.Value[0].GetHashCode()));
                 
                 foreach (var segment in segmentsToAdd)
                 {
                     var node = yStructure.FindOrCreateNode(segment, segmentComparator);
-                    if (node.Value is null)
+                    
+                    node.Value.Add(segment);
+                    insertedNodes.Add(node);
+                    
+                    if (segment.EndPoint > node.Value[0].EndPoint)
                     {
-                        node.Value = [segment];
+                        //note(shevyrin): since we use first segment as a key, we have to reinsert this node when we swap first segment with new one
+                        insertedNodes.Remove(node);
+                        (node.Value[0], node.Value[^1]) = (node.Value[^1], node.Value[0]);
                         insertedNodes.Add(node);
-                    }
-                    else
-                    {
-                        insertedNodes.Add(node);
-                        node.Value.Add(segment);
-                        if (segment.EndPoint > node.Value[0].EndPoint)
-                        {
-                            //note(shevyrin): since we use first segment as a key, we have to reinsert this node when we swap first segment with new one
-                            insertedNodes.Remove(node);
-                            (node.Value[0], node.Value[^1]) = (node.Value[^1], node.Value[0]);
-                            insertedNodes.Add(node);
-                        }
                     }
 
                     InsertEventPoint(segment.EndPoint, node, node, segmentComparator);
 
                     // note(shevyrin): update references here so that we can check for intersections correctly in a later step
                     if (eventPoint.MinNode == null ||
-                        segmentComparator.Compare(eventPoint.MinNode.Value![0], segment) == SegmentComparison.BBeforeA)
+                        segmentComparator.Compare(eventPoint.MinNode.Value[0], segment) == SegmentComparison.BBeforeA)
                     {
                         eventPoint.MinNode = node;
                     }
 
                     if (eventPoint.MaxNode == null ||
-                        segmentComparator.Compare(eventPoint.MaxNode.Value![0], segment) == SegmentComparison.ABeforeB)
+                        segmentComparator.Compare(eventPoint.MaxNode.Value[0], segment) == SegmentComparison.ABeforeB)
                     {
                         eventPoint.MaxNode = node;
                     }
                 }
             
-                intersectingSegments.AddRange(insertedNodes.Select(node => node.Value!));
+                intersectingSegments.AddRange(insertedNodes.Select(node => node.Value));
             }
             
             subsequence = (eventPoint.MinNode, eventPoint.MaxNode);
@@ -177,12 +171,12 @@ public class SweepLineProcessor(IXStructure xStructure, IYStructure yStructure)
     }
 
     private void AddIntersectionEvent(
-        IYStructureNode bottom,
-        IYStructureNode top,
+        YStructureNodeBase bottom,
+        YStructureNodeBase top,
         IEventPoint eventPoint,
         SegmentComparator comparator)
     {
-        var intersection = Segment.FindIntersection(bottom.Value![0], top.Value![0]);
+        var intersection = Segment.FindIntersection(bottom.Value[0], top.Value[0]);
         if (intersection is { Type: IntersectionType.Point } && intersection.Point > eventPoint.Value)
         {
             InsertEventPoint(intersection.Point, bottom, top, comparator);
@@ -194,13 +188,13 @@ public class SweepLineProcessor(IXStructure xStructure, IYStructure yStructure)
         }
     }
 
-    private void InsertEventPoint(Point point, IYStructureNode bottom, IYStructureNode top, SegmentComparator comparator)
+    private void InsertEventPoint(Point point, YStructureNodeBase bottom, YStructureNodeBase top, SegmentComparator comparator)
     {
         var eventPoint = xStructure.FindOrDefault(point);
         if (eventPoint is not null)
         {
             var comparison = eventPoint.MinNode != null
-                ? comparator.Compare(bottom.Value![0], eventPoint.MinNode.Value![0])
+                ? comparator.Compare(bottom.Value[0], eventPoint.MinNode.Value[0])
                 : SegmentComparison.ABeforeB;
                     
             if (comparison == SegmentComparison.ABeforeB)
@@ -209,7 +203,7 @@ public class SweepLineProcessor(IXStructure xStructure, IYStructure yStructure)
             }
 
             comparison = eventPoint.MaxNode != null
-                ? comparator.Compare(top.Value![0], eventPoint.MaxNode.Value![0])
+                ? comparator.Compare(top.Value[0], eventPoint.MaxNode.Value[0])
                 : SegmentComparison.BBeforeA;
 
             if (comparison == SegmentComparison.BBeforeA)

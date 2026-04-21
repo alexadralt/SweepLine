@@ -7,7 +7,7 @@ public class YStructure : IYStructure
 {
     private YStructureNode? Head { get; set; }
     
-    public void ReverseSubSequence((IYStructureNode start, IYStructureNode end) subsequence)
+    public void ReverseSubSequence((YStructureNodeBase start, YStructureNodeBase end) subsequence)
     {
         if (subsequence.start == subsequence.end)
         {
@@ -40,7 +40,7 @@ public class YStructure : IYStructure
         }
     }
 
-    public IYStructureNode FindOrCreateNode(Segment segment, SegmentComparator cmp)
+    public YStructureNodeBase FindOrCreateNode(Segment segment, SegmentComparator cmp)
     {
         if (Head is null)
         {
@@ -52,7 +52,7 @@ public class YStructure : IYStructure
         YStructureNode? prev = null;
         while (true)
         {
-            var cmpResult = cmp.Compare(current.Value![0], segment);
+            var cmpResult = cmp.Compare(current.Value[0], segment);
             
             if (cmpResult == SegmentComparison.Overlapping)
             {
@@ -96,9 +96,9 @@ public class YStructure : IYStructure
         }
     }
 
-    public void RemoveNode(IYStructureNode node)
+    public void RemoveNode(YStructureNodeBase nodeBase)
     {
-        var yStructureNode = (YStructureNode)node;
+        var yStructureNode = (YStructureNode)nodeBase;
         var prev = yStructureNode.PreviousNode;
         var next = yStructureNode.NextNode;
         if (prev is null)
@@ -113,15 +113,13 @@ public class YStructure : IYStructure
     }
 }
 
-public class YStructureNode : IYStructureNode
+public class YStructureNode : YStructureNodeBase
 {
     public YStructureNode? NextNode { get; set; }
     
     public YStructureNode? PreviousNode { get; set; }
     
-    public List<Segment>? Value { get; set; }
+    public override YStructureNodeBase? Next => NextNode;
 
-    public IYStructureNode? Next => NextNode;
-
-    public IYStructureNode? Previous => PreviousNode;
+    public override YStructureNodeBase? Previous => PreviousNode;
 }

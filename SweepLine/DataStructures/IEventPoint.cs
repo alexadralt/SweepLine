@@ -6,7 +6,7 @@ public interface IEventPoint
 {
     public Point Value { get; }
     
-    public IYStructureNode? MinNode { get; set; }
+    public YStructureNodeBase? MinNode { get; set; }
     
-    public IYStructureNode? MaxNode { get; set; }
+    public YStructureNodeBase? MaxNode { get; set; }
 }
