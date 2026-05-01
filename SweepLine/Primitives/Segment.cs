@@ -2,9 +2,9 @@ namespace SweepLine.Primitives;
 
 public class Segment : IEquatable<Segment>
 {
-    public required Point StartPoint { get; init; }
+    public Point StartPoint { get; init; }
     
-    public required Point EndPoint { get; init; }
+    public Point EndPoint { get; init; }
 
     public static SegmentIntersection FindIntersection(Segment a, Segment b)
     {
