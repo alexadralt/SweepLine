@@ -100,24 +100,29 @@ public class SweepLineProcessor<TSegment>(IXStructure<TSegment> xStructure, IYSt
             var segmentsToAdd = SegmentStart.GetValueOrDefault(eventPoint.Value);
             if (segmentsToAdd is not null)
             {
-                var insertedNodes = new HashSet<YStructureNodeBase<TSegment>>(
-                    EqualityComparer<YStructureNodeBase<TSegment>>.Create(
-                        (nodeA, nodeB) => nodeA?.Value[0]! == nodeB?.Value[0]!,
-                        node => node.Value[0].GetHashCode()));
+                var insertedNodes = new List<YStructureNodeBase<TSegment>>();
                 
                 foreach (var segment in segmentsToAdd)
                 {
                     var node = yStructure.FindOrCreateNode(segment, segmentComparator);
                     
                     node.Value.Add(segment);
-                    insertedNodes.Add(node);
+                    
+                    // note(shevyrin): here we mark nodes as visited so we don't add same node twice.
+                    // This is better than using HashSet<> since there is no obvious good way to compute hash for nodes.
+                    // 
+                    // Previous approach used first segment in a node as a key, which meant that we had to reinsert the node
+                    // every time we would swap that first segment. This obviously was suboptimal.
+                    // 
+                    if (!node.Visited)
+                    {
+                        node.Visited = true;
+                        insertedNodes.Add(node);
+                    }
                     
                     if (segment.EndPoint > node.Value[0].EndPoint)
                     {
-                        //note(shevyrin): since we use first segment as a key, we have to reinsert this node when we swap first segment with new one
-                        insertedNodes.Remove(node);
                         (node.Value[0], node.Value[^1]) = (node.Value[^1], node.Value[0]);
-                        insertedNodes.Add(node);
                     }
 
                     InsertEventPoint(segment.EndPoint, node, node, segmentComparator);
@@ -137,6 +142,12 @@ public class SweepLineProcessor<TSegment>(IXStructure<TSegment> xStructure, IYSt
                 }
             
                 intersectingSegments.AddRange(insertedNodes.Select(node => node.Value));
+
+                // note(shevyrin): mark all as "not visited"
+                foreach (var node in insertedNodes)
+                {
+                    node.Visited = false;
+                }
             }
             
             subsequence = (eventPoint.MinNode, eventPoint.MaxNode);

@@ -6,6 +6,8 @@ public abstract class YStructureNodeBase<TSegment>
     where TSegment : Segment
 {
     public List<TSegment> Value { get; } = [];
+
+    public bool Visited { get; set; }
     
     public abstract YStructureNodeBase<TSegment>? Next { get; }
     
