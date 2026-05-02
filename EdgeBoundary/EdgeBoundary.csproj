@@ -10,4 +10,10 @@
       <ProjectReference Include="..\SweepLine\SweepLine.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Reference Include="System.Drawing.Common">
+        <HintPath>..\SweepLineTests\bin\Debug\net10.0\runtimes\win\lib\net6.0\System.Drawing.Common.dll</HintPath>
+      </Reference>
+    </ItemGroup>
+
 </Project>
