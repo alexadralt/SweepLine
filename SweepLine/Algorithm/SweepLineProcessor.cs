@@ -13,6 +13,14 @@ public class SweepLineProcessor<TSegment>(IXStructure<TSegment> xStructure, IYSt
     {
         foreach (var segment in segments)
         {
+#if DEBUG
+            if (segment.StartPoint >= segment.EndPoint)
+            {
+                throw new ArgumentException(
+                    "Each segment start point should be lexicographically smaller than end point");
+            }
+#endif
+            
             var startingSegments = SegmentStart.GetValueOrDefault(segment.StartPoint);
             startingSegments?.Add(segment);
             SegmentStart[segment.StartPoint] = startingSegments ?? [segment];
@@ -32,6 +40,7 @@ public class SweepLineProcessor<TSegment>(IXStructure<TSegment> xStructure, IYSt
             // note(shevyrin): we need to defer removal of overlapping segments that end in current point, so that we can pass them correctly to the visitor
             var overlappingSegmentsToRemove = new List<(YStructureNodeBase<TSegment>, List<int>)>();
 
+            // STEP 1: remove all segments ending in current point
             if (subsequence.MinNode is not null)
             {
                 var nodesToRemove = new List<YStructureNodeBase<TSegment>>();
@@ -60,6 +69,7 @@ public class SweepLineProcessor<TSegment>(IXStructure<TSegment> xStructure, IYSt
 
                 subsequence = nodesToKeep.Count > 0 ? (nodesToKeep[0], nodesToKeep[^1]) : (null, null);
 
+                // STEP 2: reverse the subsequence of segments that go through the current point
                 if (subsequence.MinNode is not null)
                 {
                     yStructure.ReverseSubSequence(subsequence!);
@@ -68,6 +78,7 @@ public class SweepLineProcessor<TSegment>(IXStructure<TSegment> xStructure, IYSt
                     eventPoint.MinNode = subsequence.MinNode;
                     eventPoint.MaxNode = subsequence.MaxNode;
 
+                    // note(shevyrin): here we search for overlapping segments that end in current point, but node that holds them has atleast one segment that doesn't
                     foreach (var node in new SubsequenceIterator<TSegment>(subsequence!))
                     {
                         var indicesToRemove = new List<int>();
@@ -96,6 +107,7 @@ public class SweepLineProcessor<TSegment>(IXStructure<TSegment> xStructure, IYSt
                 }
             }
 
+            // STEP 3: add segments that start in current point
             var segmentComparator = new SegmentComparator(eventPoint.Value);
             var segmentsToAdd = SegmentStart.GetValueOrDefault(eventPoint.Value);
             if (segmentsToAdd is not null)
@@ -120,6 +132,7 @@ public class SweepLineProcessor<TSegment>(IXStructure<TSegment> xStructure, IYSt
                         insertedNodes.Add(node);
                     }
                     
+                    // note(shevyrin): here we make sure that first segment in the node always corresponds to the segment that has lexicographically biggest end point
                     if (segment.EndPoint > node.Value[0].EndPoint)
                     {
                         (node.Value[0], node.Value[^1]) = (node.Value[^1], node.Value[0]);
@@ -152,6 +165,7 @@ public class SweepLineProcessor<TSegment>(IXStructure<TSegment> xStructure, IYSt
             
             subsequence = (eventPoint.MinNode, eventPoint.MaxNode);
 
+            // STEP 4: find intersections
             if (subsequence.MinNode is not null)
             {
                 var (start, end) = subsequence;

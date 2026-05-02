@@ -1,4 +1,6 @@
-﻿using System.Diagnostics;
+﻿//#define DISPLAY_STEPS
+
+using System.Diagnostics;
 using System.Drawing;
 using System.Runtime.CompilerServices;
 using SweepLine.Algorithm;
@@ -31,6 +33,7 @@ public class EdgeBoundaryBuilder
             var intersectingGroups = new List<List<SegmentWithReference>>();
             var startingGroups = new List<List<SegmentWithReference>>();
 
+            // STEP 1: split all segment groups into categories
             foreach (var group in segments)
             {
                 var groupAsList = group.ToList();
@@ -51,6 +54,7 @@ public class EdgeBoundaryBuilder
 
             var outgoingHalfEdges = endingGroups.Select(GetTwinHalfEdgeIndex).ToList();
 
+            // STEP 2: if found new overlapping segment with lexicographically greater end point, prolongate corresponding half edges
             foreach (var group in intersectingGroups.Where(group => group[0].HalfEdgeIndex == -1))
             {
                 var segment = group.First(segment => segment.HalfEdgeIndex != -1);
@@ -67,6 +71,7 @@ public class EdgeBoundaryBuilder
                 HalfEdges[twinIndex] = twin;
             }
 
+            // STEP 3: break half edges in intersection points
             if (intersectingGroups.Count > 1) // note(shevyrin): don't split if only overlapping segments intersect here
             {
                 foreach (var segment in intersectingGroups.Select(group => group[0]))
@@ -108,6 +113,7 @@ public class EdgeBoundaryBuilder
                 }
             }
 
+            // STEP 4: add new half edges for segment groups that start in current point
             foreach (var group in startingGroups)
             {
                 var newIndex = HalfEdges.Count;
@@ -135,6 +141,7 @@ public class EdgeBoundaryBuilder
                 outgoingHalfEdges.Add(newIndex);
             }
 
+            // STEP 5: sort outgoing half edges by polar angle clockwise
             outgoingHalfEdges.Sort(
                 Comparer<int>.Create((indexA, indexB) =>
                 {
@@ -153,6 +160,7 @@ public class EdgeBoundaryBuilder
                     return angleA.CompareTo(angleB);
                 }));
 
+            // STEP 6: link neighbouring half edges to form edge boundaries
             if (outgoingHalfEdges.Count > 1)
             {
                 for (var i = 0; i < outgoingHalfEdges.Count; i++)
@@ -168,7 +176,7 @@ public class EdgeBoundaryBuilder
                 }
             }
             
-#if DEBUG
+#if DISPLAY_STEPS
 #pragma warning disable CA1416
             var bitmap = new Bitmap(1000, 1000);
 
@@ -235,7 +243,7 @@ public class EdgeBoundaryBuilder
 #pragma warning restore CA1416
 #endif
         }
-#if DEBUG
+#if DISPLAY_STEPS
         private int _step;
         
         private static Color[] _colors =
