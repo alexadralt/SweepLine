@@ -172,33 +172,6 @@ public class EdgeBoundaryBuilder
 #pragma warning disable CA1416
             var bitmap = new Bitmap(1000, 1000);
 
-            var colors = new[]
-            {
-                Color.Cyan,
-                Color.Blue,
-                Color.BlueViolet,
-                Color.Green,
-                Color.LightGreen,
-                Color.Red,
-                Color.White,
-                Color.Yellow,
-                Color.DeepPink,
-                Color.Purple,
-                Color.Orange,
-                Color.Tomato,
-                Color.LightGray,
-                Color.Brown,
-                Color.Fuchsia,
-                Color.Olive,
-                Color.OliveDrab,
-                Color.SteelBlue,
-                Color.Gold,
-                Color.PaleVioletRed,
-                Color.Teal,
-                Color.SaddleBrown,
-                Color.Goldenrod,
-                Color.Aquamarine,
-            };
             var colorIndex = 0;
 
             using (var g = Graphics.FromImage(bitmap))
@@ -251,8 +224,8 @@ public class EdgeBoundaryBuilder
                     }
 
                     currentIndex = Enumerable.Range(0, HalfEdges.Count).First(index => !visited.Contains(index));
-                    colorIndex = (colorIndex + 1) % colors.Length;
-                    pen = new Pen(colors[colorIndex]);
+                    colorIndex = (colorIndex + 1) % _colors.Length;
+                    pen = new Pen(_colors[colorIndex]);
                 }
                 
                 g.DrawEllipse(new Pen(Color.Red, 5), 295 + (float)point.X * 100, 795 + (float)point.Y * -100, 10, 10);
@@ -264,6 +237,34 @@ public class EdgeBoundaryBuilder
         }
 #if DEBUG
         private int _step;
+        
+        private static Color[] _colors =
+        [
+            Color.Cyan,
+            Color.Blue,
+            Color.BlueViolet,
+            Color.Green,
+            Color.LightGreen,
+            Color.Red,
+            Color.White,
+            Color.Yellow,
+            Color.DeepPink,
+            Color.Purple,
+            Color.Orange,
+            Color.Tomato,
+            Color.LightGray,
+            Color.Brown,
+            Color.Fuchsia,
+            Color.Olive,
+            Color.OliveDrab,
+            Color.SteelBlue,
+            Color.Gold,
+            Color.PaleVioletRed,
+            Color.Teal,
+            Color.SaddleBrown,
+            Color.Goldenrod,
+            Color.Aquamarine
+        ];
 #endif
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
