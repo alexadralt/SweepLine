@@ -158,21 +158,26 @@ public class EdgeBoundaryBuilder : ISweepLineVisitor<EdgeBoundaryBuilder.Segment
                 return 1;
             }));
 
-        for (uint i = 0; i < outgoingHalfEdges.Count; i++)
+        if (outgoingHalfEdges.Count == 1)
         {
-            var currentIndex = outgoingHalfEdges[(int)i];
-            var previousIndex = outgoingHalfEdges[(int)((i - 1) % outgoingHalfEdges.Count)];
-            var nextIndex = outgoingHalfEdges[(int)((i + 1) % outgoingHalfEdges.Count)];
+            var current = HalfEdges[outgoingHalfEdges[0]];
+            
+            var currentTwin = HalfEdges[current.TwinIndex];
+            currentTwin.NextIndex = outgoingHalfEdges[0];
+            HalfEdges[current.TwinIndex] = currentTwin;
+            
+            return;
+        }
 
-            var current = HalfEdges[currentIndex];
-            var previous = HalfEdges[previousIndex];
+        for (var i = 0; i < outgoingHalfEdges.Count; i++)
+        {
+            var currentEdgeIndex = outgoingHalfEdges[i];
+            var nextEdgeIndex = outgoingHalfEdges[(i + 1) % outgoingHalfEdges.Count];
 
-            var previousTwin = HalfEdges[previous.TwinIndex];
-            previousTwin.NextIndex = currentIndex;
-            HalfEdges[previous.TwinIndex] = previousTwin;
+            var current = HalfEdges[currentEdgeIndex];
 
             var currentTwin = HalfEdges[current.TwinIndex];
-            currentTwin.NextIndex = nextIndex;
+            currentTwin.NextIndex = nextEdgeIndex;
             HalfEdges[current.TwinIndex] = currentTwin;
         }
     }
