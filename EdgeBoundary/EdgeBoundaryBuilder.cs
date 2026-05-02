@@ -74,11 +74,13 @@ public class EdgeBoundaryBuilder
 #endif
             }
 
-            foreach (var halfEdgeIndex in intersectingGroups.Select(GetHalfEdgeIndex))
+            foreach (var segment in intersectingGroups.Select(group => group[0]))
             {
+                var halfEdgeIndex = segment.HalfEdgeIndex;
                 var twinIndex = HalfEdges[halfEdgeIndex].TwinIndex;
 
                 var halfEdge = HalfEdges[halfEdgeIndex];
+                var farPoint = halfEdge.DestinationPoint;
                 halfEdge.DestinationPoint = point;
                 HalfEdges[halfEdgeIndex] = halfEdge;
 
@@ -87,6 +89,26 @@ public class EdgeBoundaryBuilder
                 HalfEdges[twinIndex] = twin;
 
                 outgoingHalfEdges.Add(twinIndex);
+
+                var newIndex = HalfEdges.Count;
+
+                HalfEdges.Add(new HalfEdge
+                {
+                    DestinationPoint = farPoint,
+                    OriginPoint = point,
+                    TwinIndex = newIndex + 1,
+                });
+                
+                HalfEdges.Add(new HalfEdge
+                {
+                    DestinationPoint = point,
+                    OriginPoint = farPoint,
+                    TwinIndex = newIndex,
+                });
+                
+                outgoingHalfEdges.Add(newIndex);
+
+                segment.HalfEdgeIndex = newIndex;
             }
 
             foreach (var group in startingGroups)
@@ -168,12 +190,6 @@ public class EdgeBoundaryBuilder
                 currentTwin.NextIndex = nextEdgeIndex;
                 HalfEdges[current.TwinIndex] = currentTwin;
             }
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private int GetHalfEdgeIndex(List<SegmentWithReference> group)
-        {
-            return group[0].HalfEdgeIndex;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
