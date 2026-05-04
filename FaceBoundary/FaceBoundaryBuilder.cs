@@ -291,7 +291,7 @@ public class FaceBoundaryBuilder
     private SweepLineProcessor<SegmentWithReference> SweepLineProcessor { get; } =
         new(new XStructure<SegmentWithReference>(), new YStructure<SegmentWithReference>());
     
-    public FaceBoundaryBuilder(List<Segment> segments)
+    public FaceBoundaryBuilder(IEnumerable<Segment> segments)
     {
         SweepLineProcessor.AddSegments(segments.Select(segment => new SegmentWithReference(segment)));
     }
