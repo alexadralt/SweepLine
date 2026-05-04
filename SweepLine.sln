@@ -4,7 +4,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SweepLine", "SweepLine\Swee
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SweepLineTests", "SweepLineTests\SweepLineTests.csproj", "{41D607DC-DC01-4830-86E8-8D80C8A7D08B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EdgeBoundary", "EdgeBoundary\EdgeBoundary.csproj", "{CC685361-4E7F-41AD-A100-83E14BA59647}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FaceBoundary", "FaceBoundary\FaceBoundary.csproj", "{CC685361-4E7F-41AD-A100-83E14BA59647}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

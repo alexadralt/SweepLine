@@ -22,7 +22,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\EdgeBoundary\EdgeBoundary.csproj" />
+      <ProjectReference Include="..\FaceBoundary\FaceBoundary.csproj" />
       <ProjectReference Include="..\SweepLine\SweepLine.csproj" />
     </ItemGroup>
 

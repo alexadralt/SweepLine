@@ -8,9 +8,9 @@ using SweepLine.DataStructuresLinkedListImpl;
 using SweepLine.Primitives;
 using Point = SweepLine.Primitives.Point;
 
-namespace EdgeBoundary;
+namespace FaceBoundary;
 
-public class EdgeBoundaryBuilder
+public class FaceBoundaryBuilder
 {
     private class SegmentWithReference : Segment
     {
@@ -23,7 +23,7 @@ public class EdgeBoundaryBuilder
         public int HalfEdgeIndex { get; set; } = -1;
     }
 
-    private class EdgeBoundaryBuilderVisitor : ISweepLineVisitor<SegmentWithReference>
+    private class FaceBoundaryBuilderVisitor : ISweepLineVisitor<SegmentWithReference>
     {
         public List<HalfEdge> HalfEdges { get; } = [];
 
@@ -160,7 +160,7 @@ public class EdgeBoundaryBuilder
                     return angleA.CompareTo(angleB);
                 }));
 
-            // STEP 6: link neighbouring half edges to form edge boundaries
+            // STEP 6: link neighbouring half edges to form face boundaries
             if (outgoingHalfEdges.Count > 1)
             {
                 for (var i = 0; i < outgoingHalfEdges.Count; i++)
@@ -291,14 +291,14 @@ public class EdgeBoundaryBuilder
     private SweepLineProcessor<SegmentWithReference> SweepLineProcessor { get; } =
         new(new XStructure<SegmentWithReference>(), new YStructure<SegmentWithReference>());
     
-    public EdgeBoundaryBuilder(List<Segment> segments)
+    public FaceBoundaryBuilder(List<Segment> segments)
     {
         SweepLineProcessor.AddSegments(segments.Select(segment => new SegmentWithReference(segment)));
     }
 
     public List<HalfEdge> ComputePlaneSubdivision()
     {
-        var visitor = new EdgeBoundaryBuilderVisitor();
+        var visitor = new FaceBoundaryBuilderVisitor();
         SweepLineProcessor.Process(visitor);
         return visitor.HalfEdges;
     }

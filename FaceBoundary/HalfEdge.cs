@@ -1,6 +1,6 @@
 using SweepLine.Primitives;
 
-namespace EdgeBoundary;
+namespace FaceBoundary;
 
 public struct HalfEdge()
 {

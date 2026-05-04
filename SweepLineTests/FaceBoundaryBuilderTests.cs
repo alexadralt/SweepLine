@@ -1,12 +1,12 @@
 using System.Diagnostics;
 using System.Drawing;
-using EdgeBoundary;
+using FaceBoundary;
 using SweepLine.Primitives;
 using Point = SweepLine.Primitives.Point;
 
 namespace SweepLineTests;
 
-public class EdgeBoundaryBuilderTests
+public class FaceBoundaryBuilderTests
 {
     [Test]
     public void Test1()
@@ -169,7 +169,7 @@ public class EdgeBoundaryBuilderTests
             },
         };
         
-        var result = new EdgeBoundaryBuilder(segments).ComputePlaneSubdivision();
+        var result = new FaceBoundaryBuilder(segments).ComputePlaneSubdivision();
         DumpBitmap(result, "out-test-1.png");
     }
 
@@ -279,7 +279,7 @@ public class EdgeBoundaryBuilderTests
             },
         };
 
-        var result = new EdgeBoundaryBuilder(segments).ComputePlaneSubdivision();
+        var result = new FaceBoundaryBuilder(segments).ComputePlaneSubdivision();
         DumpBitmap(result, "out-test-2.png");
     }
 
