@@ -290,20 +290,12 @@ public class EdgeBoundaryBuilderTests
 
         var colors = new[]
         {
-            Color.Cyan,
-            Color.Blue,
+            Color.DodgerBlue,
             Color.BlueViolet,
-            Color.Green,
             Color.LightGreen,
             Color.Red,
-            Color.White,
-            Color.Yellow,
-            Color.DeepPink,
-            Color.Purple,
             Color.Orange,
             Color.Tomato,
-            Color.LightGray,
-            Color.Brown,
             Color.Fuchsia,
             Color.Olive,
             Color.OliveDrab,
@@ -313,13 +305,12 @@ public class EdgeBoundaryBuilderTests
             Color.Teal,
             Color.SaddleBrown,
             Color.Goldenrod,
-            Color.Aquamarine,
         };
         var colorIndex = 0;
 
         using (var g = Graphics.FromImage(bitmap))
         {
-            var pen = new Pen(Color.Cyan);
+            var pen = new Pen(colors[0]);
             var visited = new HashSet<int>();
 
             var currentIndex = 0;
