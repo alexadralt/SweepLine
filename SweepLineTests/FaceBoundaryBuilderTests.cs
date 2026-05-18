@@ -311,53 +311,33 @@ public class FaceBoundaryBuilderTests
         using (var g = Graphics.FromImage(bitmap))
         {
             var pen = new Pen(colors[0]);
-            var visited = new HashSet<int>();
 
-            var currentIndex = 0;
-            while (true)
+            foreach (var faceBoundary in new FaceBoundaryIterator(result))
             {
-                var halfEdge = result[currentIndex];
-                visited.Add(currentIndex);
-
-                var ox = halfEdge.OriginPoint.X;
-                var oy = halfEdge.OriginPoint.Y;
-
-                var dx = halfEdge.DestinationPoint.X;
-                var dy = halfEdge.DestinationPoint.Y;
-
-                var directionX = dx - ox;
-                var directionY = dy - oy;
-                var mag = Math.Sqrt(directionX * directionX + directionY * directionY);
-                directionX /= mag;
-                directionY /= mag;
-
-                var displacementX = -directionY;
-                var displacementY = directionX;
-                displacementX *= 0.025;
-                displacementY *= 0.025;
-
-                g.DrawLine(pen,
-                    new PointF(300 + (float)(ox + displacementX) * 100, 800 + (float)(oy + displacementY) * -100),
-                    new PointF(300 + (float)(dx + displacementX) * 100, 800 + (float)(dy + displacementY) * -100));
-
-                currentIndex = halfEdge.NextIndex;
-
-                if (currentIndex < 0)
+                foreach (var segment in faceBoundary)
                 {
-                    throw new UnreachableException();
-                }
+                    var ox = segment.StartPoint.X;
+                    var oy = segment.StartPoint.Y;
 
-                if (visited.Count == result.Count)
-                {
-                    break;
-                }
+                    var dx = segment.EndPoint.X;
+                    var dy = segment.EndPoint.Y;
 
-                if (!visited.Contains(currentIndex))
-                {
-                    continue;
-                }
+                    var directionX = dx - ox;
+                    var directionY = dy - oy;
+                    var mag = Math.Sqrt(directionX * directionX + directionY * directionY);
+                    directionX /= mag;
+                    directionY /= mag;
 
-                currentIndex = Enumerable.Range(0, result.Count).First(index => !visited.Contains(index));
+                    var displacementX = -directionY;
+                    var displacementY = directionX;
+                    displacementX *= 0.025;
+                    displacementY *= 0.025;
+
+                    g.DrawLine(pen,
+                        new PointF(300 + (float)(ox + displacementX) * 100, 800 + (float)(oy + displacementY) * -100),
+                        new PointF(300 + (float)(dx + displacementX) * 100, 800 + (float)(dy + displacementY) * -100));
+                }
+                
                 colorIndex = (colorIndex + 1) % colors.Length;
                 pen = new Pen(colors[colorIndex]);
             }

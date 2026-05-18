@@ -11,4 +11,6 @@ public struct HalfEdge()
     public Point OriginPoint { get; set; } = default;
 
     public Point DestinationPoint { get; set; } = default;
+
+    public Segment AsSegment() => new() { StartPoint = OriginPoint, EndPoint = DestinationPoint };
 }
