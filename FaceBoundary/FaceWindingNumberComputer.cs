@@ -92,29 +92,23 @@ public class FaceWindingNumberComputer
             }
             
             // find a point inside the face
-            var point = new Point();
+            var earVertex = new Point();
 
             var vertices = faceBoundary.Select(segment => segment.StartPoint).ToList();
             var currentVertexIndex = 0;
             
             while (true)
             {
-                var index1 = currentVertexIndex;
-                var index2 = (currentVertexIndex + 1) % vertices.Count;
-                var index3 = (currentVertexIndex + 2) % vertices.Count;
-                
-                if (HasToTheLeft(vertices, index1, index2, currentVertexIndex) &&
-                    HasToTheLeft(vertices, index2, index3, currentVertexIndex) &&
-                    HasToTheLeft(vertices, index3, index1, currentVertexIndex))
+                if (HasPointInsideTriangle(vertices, currentVertexIndex))
                 {
                     currentVertexIndex = (currentVertexIndex + 1) % vertices.Count;
                     continue;
                 }
                 
-                var vertex1 = vertices[index1];
-                var vertex2 = vertices[index2];
-                var vertex3 = vertices[index3];
-                point = new Point
+                var vertex1 = vertices[currentVertexIndex];
+                var vertex2 = vertices[(currentVertexIndex + 1) % vertices.Count];
+                var vertex3 = vertices[(currentVertexIndex + 2) % vertices.Count];
+                earVertex = new Point
                 {
                     X = (vertex1.X + vertex2.X + vertex3.X) / 3.0,
                     Y = (vertex1.Y + vertex2.Y + vertex3.Y) / 3.0,
@@ -146,7 +140,7 @@ public class FaceWindingNumberComputer
                     new PointF(300 + (float)(dx + displacementX) * 100, 800 + (float)(dy + displacementY) * -100));
             }
             
-            g.DrawEllipse(new Pen(colors[colorIndex], 5), 295 + (float)point.X * 100, 795 + (float)point.Y * -100, 10, 10);
+            g.DrawEllipse(new Pen(colors[colorIndex], 5), 295 + (float)earVertex.X * 100, 795 + (float)earVertex.Y * -100, 10, 10);
             colorIndex = (colorIndex + 1) % colors.Length;
             pen = new Pen(colors[colorIndex]);
 #endif
@@ -157,29 +151,37 @@ public class FaceWindingNumberComputer
         return (faces, outerFace!);
     }
 
-    private bool HasToTheLeft(List<Point> vertices, int index1, int index2, int currentVertexIndex)
+    private static bool HasPointInsideTriangle(List<Point> vertices, int currentVertexIndex)
     {
-        var vertex1 = vertices[index1];
-        var vertex2 = vertices[index2];
+        var vertex1 = vertices[currentVertexIndex];
+        var vertex2 = vertices[(currentVertexIndex + 1) % vertices.Count];
+        var vertex3 = vertices[(currentVertexIndex + 2) % vertices.Count];
 
-        var ax = vertex2.X - vertex1.X;
-        var ay = vertex2.Y - vertex1.Y;
+        var ax1 = vertex2.X - vertex1.X;
+        var ay1 = vertex2.Y - vertex1.Y;
 
-        var hasToTheLeft = false;
+        var ax2 = vertex3.X - vertex2.X;
+        var ay2 = vertex3.Y - vertex2.Y;
+
+        var ax3 = vertex1.X - vertex3.X;
+        var ay3 = vertex1.Y - vertex3.Y;
+
         for (var i = (currentVertexIndex + 3) % vertices.Count; i != currentVertexIndex; i = (i + 1) % vertices.Count)
         {
             var vertexToTest = vertices[i];
             var bx = vertexToTest.X - vertex1.X;
             var by = vertexToTest.Y - vertex1.Y;
 
-            var semiCross = ax * by - ay * bx;
-            if (semiCross > 0)
+            var semiCross1 = ax1 * by - ay1 * bx;
+            var semiCross2 = ax2 * by - ay2 * bx;
+            var semiCross3 = ax3 * by - ay3 * bx;
+            
+            if (semiCross1 > 0 && semiCross2 > 0 && semiCross3 > 0)
             {
-                hasToTheLeft = true;
-                break;
+                return true;
             }
         }
 
-        return hasToTheLeft;
+        return false;
     }
 }
