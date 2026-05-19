@@ -92,7 +92,7 @@ public class FaceWindingNumberComputer
             }
             
             // find a point inside the face
-            var earVertex = new Point();
+            var internalFacePoint = new Point();
 
             var vertices = faceBoundary.Select(segment => segment.StartPoint).ToList();
             var currentVertexIndex = 0;
@@ -108,13 +108,54 @@ public class FaceWindingNumberComputer
                 var vertex1 = vertices[currentVertexIndex];
                 var vertex2 = vertices[(currentVertexIndex + 1) % vertices.Count];
                 var vertex3 = vertices[(currentVertexIndex + 2) % vertices.Count];
-                earVertex = new Point
+                internalFacePoint = new Point
                 {
                     X = (vertex1.X + vertex2.X + vertex3.X) / 3.0,
                     Y = (vertex1.Y + vertex2.Y + vertex3.Y) / 3.0,
                 };
                 break;
             }
+            
+            // compute winding numbers
+            var quarterRevalationsCount = 0;
+            vertices = ConvolutionCycle.Select(segment => segment.StartPoint).ToList();
+            var prevQuadrant = GetQuadrant(internalFacePoint, vertices[^1]);
+            for (var i = 0; i < vertices.Count; i++)
+            {
+                var vertex = vertices[i];
+                var currentQuadrant = GetQuadrant(internalFacePoint, vertex);
+                var diff = currentQuadrant - prevQuadrant;
+
+                if (diff == 1 || diff == -3)
+                {
+                    quarterRevalationsCount += 1;
+                }
+                else if (diff == -1 || diff == 3)
+                {
+                    quarterRevalationsCount -= 1;
+                }
+                else if (diff == 2 || diff == -2)
+                {
+                    var ax = vertex.X - internalFacePoint.X;
+                    var ay = vertex.Y - internalFacePoint.Y;
+
+                    var nextVertex = vertices[(i + 1) % vertices.Count];
+                    var bx = nextVertex.X - internalFacePoint.X;
+                    var by = nextVertex.Y - internalFacePoint.Y;
+
+                    var semiCross = ax * by - ay * bx;
+                    quarterRevalationsCount += semiCross > 0 ? 2 : -2;
+                }
+
+                prevQuadrant = currentQuadrant;
+            }
+            
+            faces.Add(new FaceWithWindingNumber
+            {
+                FaceBoundary = new List<Segment>(faceBoundary), // note(shevyrin): copy list because iterator reuses it
+                WindingNumber = quarterRevalationsCount / 4,
+            });
+            
 #if DRAW_FACE_POINTS
             foreach (var segment in faceBoundary)
             {
@@ -183,5 +224,25 @@ public class FaceWindingNumberComputer
         }
 
         return false;
+    }
+
+    private static int GetQuadrant(Point internalFacePoint, Point vertex)
+    {
+        if (vertex.X > internalFacePoint.X && vertex.Y >= internalFacePoint.Y)
+        {
+            return 0;
+        }
+
+        if (vertex.X <= internalFacePoint.X && vertex.Y > internalFacePoint.Y)
+        {
+            return 1;
+        }
+
+        if (vertex.X < internalFacePoint.X && vertex.Y < internalFacePoint.Y)
+        {
+            return 2;
+        }
+
+        return 3;
     }
 }

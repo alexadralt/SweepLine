@@ -112,5 +112,14 @@ public class FaceWindingNumberTests
         };
         
         var result = new FaceWindingNumberComputer(segments).ComputeWindingNumbers();
+        foreach (var faceWithWindingNumber in result.InsideFaces)
+        {
+            Console.Write($"{faceWithWindingNumber.WindingNumber}: {{ ");
+            foreach (var segment in faceWithWindingNumber.FaceBoundary)
+            {
+                Console.Write($"{segment} ");
+            }
+            Console.WriteLine("}");
+        }
     }
 }
