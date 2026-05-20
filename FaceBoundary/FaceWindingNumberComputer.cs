@@ -118,11 +118,11 @@ public class FaceWindingNumberComputer
             
             // compute winding numbers
             var quarterRevalationsCount = 0;
-            vertices = ConvolutionCycle.Select(segment => segment.StartPoint).ToList();
-            var prevQuadrant = GetQuadrant(internalFacePoint, vertices[^1]);
-            for (var i = 0; i < vertices.Count; i++)
+            var prevVertex = ConvolutionCycle[0].StartPoint;
+            var prevQuadrant = GetQuadrant(internalFacePoint, prevVertex);
+            foreach (var segment in ConvolutionCycle)
             {
-                var vertex = vertices[i];
+                var vertex = segment.EndPoint;
                 var currentQuadrant = GetQuadrant(internalFacePoint, vertex);
                 var diff = currentQuadrant - prevQuadrant;
 
@@ -136,18 +136,18 @@ public class FaceWindingNumberComputer
                 }
                 else if (diff == 2 || diff == -2)
                 {
-                    var ax = vertex.X - internalFacePoint.X;
-                    var ay = vertex.Y - internalFacePoint.Y;
+                    var ax = prevVertex.X - internalFacePoint.X;
+                    var ay = prevVertex.Y - internalFacePoint.Y;
 
-                    var nextVertex = vertices[(i + 1) % vertices.Count];
-                    var bx = nextVertex.X - internalFacePoint.X;
-                    var by = nextVertex.Y - internalFacePoint.Y;
+                    var bx = vertex.X - internalFacePoint.X;
+                    var by = vertex.Y - internalFacePoint.Y;
 
                     var semiCross = ax * by - ay * bx;
                     quarterRevalationsCount += semiCross > 0 ? 2 : -2;
                 }
 
                 prevQuadrant = currentQuadrant;
+                prevVertex = vertex;
             }
             
             faces.Add(new FaceWithWindingNumber
