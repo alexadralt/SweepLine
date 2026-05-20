@@ -163,15 +163,15 @@ public class FaceWindingNumberComputer
         return (faces, outerFace!);
     }
 
-    private static int ComputeWindingNumber(List<Segment> loop, Point internalFacePoint)
+    private static int ComputeWindingNumber(List<Segment> loop, Point point)
     {
         var quarterRevelationsCount = 0;
         var prevVertex = loop[0].StartPoint;
-        var prevQuadrant = GetQuadrant(internalFacePoint, prevVertex);
+        var prevQuadrant = GetQuadrant(point, prevVertex);
         foreach (var segment in loop)
         {
             var vertex = segment.EndPoint;
-            var currentQuadrant = GetQuadrant(internalFacePoint, vertex);
+            var currentQuadrant = GetQuadrant(point, vertex);
             var diff = currentQuadrant - prevQuadrant;
 
             if (diff == 1 || diff == -3)
@@ -184,11 +184,11 @@ public class FaceWindingNumberComputer
             }
             else if (diff == 2 || diff == -2)
             {
-                var ax = prevVertex.X - internalFacePoint.X;
-                var ay = prevVertex.Y - internalFacePoint.Y;
+                var ax = prevVertex.X - point.X;
+                var ay = prevVertex.Y - point.Y;
 
-                var bx = vertex.X - internalFacePoint.X;
-                var by = vertex.Y - internalFacePoint.Y;
+                var bx = vertex.X - point.X;
+                var by = vertex.Y - point.Y;
 
                 var semiCross = ax * by - ay * bx;
                 quarterRevelationsCount += semiCross > 0 ? 2 : -2;
