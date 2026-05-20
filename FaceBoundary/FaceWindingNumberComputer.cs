@@ -181,7 +181,9 @@ public class FaceWindingNumberComputer
                     new PointF(300 + (float)(dx + displacementX) * 100, 800 + (float)(dy + displacementY) * -100));
             }
             
-            g.DrawEllipse(new Pen(colors[colorIndex], 5), 295 + (float)earVertex.X * 100, 795 + (float)earVertex.Y * -100, 10, 10);
+            //g.DrawEllipse(new Pen(colors[colorIndex], 5), 295 + (float)internalFacePoint.X * 100, 795 + (float)internalFacePoint.Y * -100, 10, 10);
+            g.DrawString($"{quarterRevalationsCount / 4}", new Font(FontFamily.GenericMonospace, 20), new SolidBrush(colors[colorIndex]),
+                290 + (float)internalFacePoint.X * 100, 785 + (float)internalFacePoint.Y * -100);
             colorIndex = (colorIndex + 1) % colors.Length;
             pen = new Pen(colors[colorIndex]);
 #endif
