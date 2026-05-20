@@ -99,12 +99,6 @@ public class FaceWindingNumberComputer
             
             while (true)
             {
-                if (HasPointInsideTriangle(vertices, currentVertexIndex))
-                {
-                    currentVertexIndex = (currentVertexIndex + 1) % vertices.Count;
-                    continue;
-                }
-                
                 var vertex1 = vertices[currentVertexIndex];
                 var vertex2 = vertices[(currentVertexIndex + 1) % vertices.Count];
                 var vertex3 = vertices[(currentVertexIndex + 2) % vertices.Count];
@@ -113,47 +107,21 @@ public class FaceWindingNumberComputer
                     X = (vertex1.X + vertex2.X + vertex3.X) / 3.0,
                     Y = (vertex1.Y + vertex2.Y + vertex3.Y) / 3.0,
                 };
-                break;
+                
+                if (ComputeWindingNumber(faceBoundary, internalFacePoint) > 0)
+                {
+                    break;
+                }
+                
+                currentVertexIndex = (currentVertexIndex + 1) % vertices.Count;
             }
-            
-            // compute winding numbers
-            var quarterRevalationsCount = 0;
-            var prevVertex = ConvolutionCycle[0].StartPoint;
-            var prevQuadrant = GetQuadrant(internalFacePoint, prevVertex);
-            foreach (var segment in ConvolutionCycle)
-            {
-                var vertex = segment.EndPoint;
-                var currentQuadrant = GetQuadrant(internalFacePoint, vertex);
-                var diff = currentQuadrant - prevQuadrant;
 
-                if (diff == 1 || diff == -3)
-                {
-                    quarterRevalationsCount += 1;
-                }
-                else if (diff == -1 || diff == 3)
-                {
-                    quarterRevalationsCount -= 1;
-                }
-                else if (diff == 2 || diff == -2)
-                {
-                    var ax = prevVertex.X - internalFacePoint.X;
-                    var ay = prevVertex.Y - internalFacePoint.Y;
-
-                    var bx = vertex.X - internalFacePoint.X;
-                    var by = vertex.Y - internalFacePoint.Y;
-
-                    var semiCross = ax * by - ay * bx;
-                    quarterRevalationsCount += semiCross > 0 ? 2 : -2;
-                }
-
-                prevQuadrant = currentQuadrant;
-                prevVertex = vertex;
-            }
+            var windingNumber = ComputeWindingNumber(ConvolutionCycle, internalFacePoint);
             
             faces.Add(new FaceWithWindingNumber
             {
                 FaceBoundary = new List<Segment>(faceBoundary), // note(shevyrin): copy list because iterator reuses it
-                WindingNumber = quarterRevalationsCount / 4,
+                WindingNumber = windingNumber,
             });
             
 #if DRAW_FACE_POINTS
@@ -182,7 +150,7 @@ public class FaceWindingNumberComputer
             }
             
             //g.DrawEllipse(new Pen(colors[colorIndex], 5), 295 + (float)internalFacePoint.X * 100, 795 + (float)internalFacePoint.Y * -100, 10, 10);
-            g.DrawString($"{quarterRevalationsCount / 4}", new Font(FontFamily.GenericMonospace, 20), new SolidBrush(colors[colorIndex]),
+            g.DrawString($"{windingNumber}", new Font(FontFamily.GenericMonospace, 20), new SolidBrush(colors[colorIndex]),
                 290 + (float)internalFacePoint.X * 100, 785 + (float)internalFacePoint.Y * -100);
             colorIndex = (colorIndex + 1) % colors.Length;
             pen = new Pen(colors[colorIndex]);
@@ -194,53 +162,60 @@ public class FaceWindingNumberComputer
         return (faces, outerFace!);
     }
 
-    private static bool HasPointInsideTriangle(List<Point> vertices, int currentVertexIndex)
+    private static int ComputeWindingNumber(List<Segment> loop, Point internalFacePoint)
     {
-        var vertex1 = vertices[currentVertexIndex];
-        var vertex2 = vertices[(currentVertexIndex + 1) % vertices.Count];
-        var vertex3 = vertices[(currentVertexIndex + 2) % vertices.Count];
-
-        var ax1 = vertex2.X - vertex1.X;
-        var ay1 = vertex2.Y - vertex1.Y;
-
-        var ax2 = vertex3.X - vertex2.X;
-        var ay2 = vertex3.Y - vertex2.Y;
-
-        var ax3 = vertex1.X - vertex3.X;
-        var ay3 = vertex1.Y - vertex3.Y;
-
-        for (var i = (currentVertexIndex + 3) % vertices.Count; i != currentVertexIndex; i = (i + 1) % vertices.Count)
+        var quarterRevelationsCount = 0;
+        var prevVertex = loop[0].StartPoint;
+        var prevQuadrant = GetQuadrant(internalFacePoint, prevVertex);
+        foreach (var segment in loop)
         {
-            var vertexToTest = vertices[i];
-            var bx = vertexToTest.X - vertex1.X;
-            var by = vertexToTest.Y - vertex1.Y;
+            var vertex = segment.EndPoint;
+            var currentQuadrant = GetQuadrant(internalFacePoint, vertex);
+            var diff = currentQuadrant - prevQuadrant;
 
-            var semiCross1 = ax1 * by - ay1 * bx;
-            var semiCross2 = ax2 * by - ay2 * bx;
-            var semiCross3 = ax3 * by - ay3 * bx;
-            
-            if (semiCross1 > 0 && semiCross2 > 0 && semiCross3 > 0)
+            if (diff == 1 || diff == -3)
             {
-                return true;
+                quarterRevelationsCount += 1;
             }
+            else if (diff == -1 || diff == 3)
+            {
+                quarterRevelationsCount -= 1;
+            }
+            else if (diff == 2 || diff == -2)
+            {
+                var ax = prevVertex.X - internalFacePoint.X;
+                var ay = prevVertex.Y - internalFacePoint.Y;
+
+                var bx = vertex.X - internalFacePoint.X;
+                var by = vertex.Y - internalFacePoint.Y;
+
+                var semiCross = ax * by - ay * bx;
+                quarterRevelationsCount += semiCross > 0 ? 2 : -2;
+            }
+
+            prevQuadrant = currentQuadrant;
+            prevVertex = vertex;
         }
 
-        return false;
+        return quarterRevelationsCount / 4;
     }
 
     private static int GetQuadrant(Point internalFacePoint, Point vertex)
     {
-        if (vertex.X > internalFacePoint.X && vertex.Y >= internalFacePoint.Y)
+        var right = vertex.X > internalFacePoint.X;
+        var top = vertex.Y > internalFacePoint.Y;
+        
+        if (right && top)
         {
             return 0;
         }
 
-        if (vertex.X <= internalFacePoint.X && vertex.Y > internalFacePoint.Y)
+        if (!right && top)
         {
             return 1;
         }
 
-        if (vertex.X < internalFacePoint.X && vertex.Y < internalFacePoint.Y)
+        if (!right && !top)
         {
             return 2;
         }
