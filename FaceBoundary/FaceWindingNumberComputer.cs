@@ -116,6 +116,7 @@ public class FaceWindingNumberComputer
                 currentVertexIndex = (currentVertexIndex + 1) % vertices.Count;
             }
 
+            // compute winding number
             var windingNumber = ComputeWindingNumber(ConvolutionCycle, internalFacePoint);
             
             faces.Add(new FaceWithWindingNumber
