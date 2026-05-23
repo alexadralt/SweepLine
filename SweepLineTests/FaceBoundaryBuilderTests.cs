@@ -283,6 +283,61 @@ public class FaceBoundaryBuilderTests
         DumpBitmap(result, "out-test-2.png");
     }
 
+    [Test]
+    public void Test3()
+    {
+        var segments = new List<Segment>
+        {
+            new()
+            {
+                StartPoint = new Point
+                {
+                    X = 0, Y = 0,
+                },
+                EndPoint = new Point
+                {
+                    X = 3, Y = 0
+                }
+            },
+            new()
+            {
+                StartPoint = new Point
+                {
+                    X = 2, Y = 0
+                },
+                EndPoint = new Point
+                {
+                    X = 3, Y = 0
+                }
+            },
+            new()
+            {
+                StartPoint = new Point
+                {
+                    X = 1, Y = 3
+                },
+                EndPoint = new Point
+                {
+                    X = 2, Y = 0
+                }
+            },
+            new()
+            {
+                StartPoint = new Point
+                {
+                    X = 0, Y = 0
+                },
+                EndPoint = new Point
+                {
+                    X = 1, Y = 3
+                }
+            }
+        };
+        
+        var result = new FaceBoundaryBuilder(segments).ComputePlaneSubdivision();
+        DumpBitmap(result, "out-test-3.png");
+    }
+
     private void DumpBitmap(List<HalfEdge> result, string fileName)
     {
 #pragma warning disable CA1416

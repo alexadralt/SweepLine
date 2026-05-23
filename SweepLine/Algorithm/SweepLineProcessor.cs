@@ -35,7 +35,10 @@ public class SweepLineProcessor<TSegment>(IXStructure<TSegment> xStructure, IYSt
         {
             var subsequence = (eventPoint.MinNode, eventPoint.MaxNode);
 
-            var intersectingSegments = new List<List<TSegment>>();
+            var intersectingSegments = new HashSet<YStructureNodeBase<TSegment>>(
+                EqualityComparer<YStructureNodeBase<TSegment>>.Create(
+                    (nodeA, nodeB) => nodeA!.UniqueId == nodeB!.UniqueId,
+                    node => node.UniqueId.GetHashCode()));
             
             // note(shevyrin): we need to defer removal of overlapping segments that end in current point, so that we can pass them correctly to the visitor
             var overlappingSegmentsToRemove = new List<(YStructureNodeBase<TSegment>, List<int>)>();
@@ -62,7 +65,7 @@ public class SweepLineProcessor<TSegment>(IXStructure<TSegment> xStructure, IYSt
                 {
                     foreach (var node in nodesToRemove)
                     {
-                        intersectingSegments.Add(node.Value);
+                        intersectingSegments.Add(node);
                         yStructure.RemoveNode(node);
                     }
                 }
@@ -97,7 +100,7 @@ public class SweepLineProcessor<TSegment>(IXStructure<TSegment> xStructure, IYSt
                             overlappingSegmentsToRemove.Add((node, indicesToRemove));
                         }
                         
-                        intersectingSegments.Add(node.Value);
+                        intersectingSegments.Add(node);
                     }
                 }
                 else
@@ -112,25 +115,13 @@ public class SweepLineProcessor<TSegment>(IXStructure<TSegment> xStructure, IYSt
             var segmentsToAdd = SegmentStart.GetValueOrDefault(eventPoint.Value);
             if (segmentsToAdd is not null)
             {
-                var insertedNodes = new List<YStructureNodeBase<TSegment>>();
-                
                 foreach (var segment in segmentsToAdd)
                 {
                     var node = yStructure.FindOrCreateNode(segment, segmentComparator);
                     
                     node.Value.Add(segment);
                     
-                    // note(shevyrin): here we mark nodes as visited so we don't add same node twice.
-                    // This is better than using HashSet<> since there is no obvious good way to compute hash for nodes.
-                    // 
-                    // Previous approach used first segment in a node as a key, which meant that we had to reinsert the node
-                    // every time we would swap that first segment. This obviously was suboptimal.
-                    // 
-                    if (!node.Visited)
-                    {
-                        node.Visited = true;
-                        insertedNodes.Add(node);
-                    }
+                    intersectingSegments.Add(node);
                     
                     // note(shevyrin): here we make sure that first segment in the node always corresponds to the segment that has lexicographically biggest end point
                     if (segment.EndPoint > node.Value[0].EndPoint)
@@ -152,14 +143,6 @@ public class SweepLineProcessor<TSegment>(IXStructure<TSegment> xStructure, IYSt
                     {
                         eventPoint.MaxNode = node;
                     }
-                }
-            
-                intersectingSegments.AddRange(insertedNodes.Select(node => node.Value));
-
-                // note(shevyrin): mark all as "not visited"
-                foreach (var node in insertedNodes)
-                {
-                    node.Visited = false;
                 }
             }
             
@@ -184,7 +167,7 @@ public class SweepLineProcessor<TSegment>(IXStructure<TSegment> xStructure, IYSt
                 }
             }
             
-            visitor.VisitIntersectingSegments(eventPoint.Value, intersectingSegments);
+            visitor.VisitIntersectingSegments(eventPoint.Value, intersectingSegments.Select(node => node.Value));
 
             foreach (var (node, indicesToRemove) in overlappingSegmentsToRemove)
             {

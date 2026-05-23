@@ -6,6 +6,7 @@ public class Segment : IEquatable<Segment>
     
     public Point EndPoint { get; init; }
 
+    // this only works for segments that have EndPoint > StartPoint
     public static SegmentIntersection FindIntersection(Segment a, Segment b)
     {
         var x1 = a.StartPoint.X;

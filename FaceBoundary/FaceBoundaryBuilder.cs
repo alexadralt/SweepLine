@@ -72,45 +72,42 @@ public class FaceBoundaryBuilder
             }
 
             // STEP 3: break half edges in intersection points
-            if (intersectingGroups.Count > 1) // note(shevyrin): don't split if only overlapping segments intersect here
+            foreach (var segment in intersectingGroups.Select(group => group[0]))
             {
-                foreach (var segment in intersectingGroups.Select(group => group[0]))
+                var halfEdgeIndex = segment.HalfEdgeIndex;
+                var twinIndex = HalfEdges[halfEdgeIndex].TwinIndex;
+
+                var halfEdge = HalfEdges[halfEdgeIndex];
+                var farPoint = halfEdge.DestinationPoint;
+                halfEdge.DestinationPoint = point;
+                HalfEdges[halfEdgeIndex] = halfEdge;
+
+                var twin = HalfEdges[twinIndex];
+                twin.OriginPoint = point;
+                HalfEdges[twinIndex] = twin;
+
+                outgoingHalfEdges.Add(twinIndex);
+
+                var newIndex = HalfEdges.Count;
+
+                HalfEdges.Add(new HalfEdge
                 {
-                    var halfEdgeIndex = segment.HalfEdgeIndex;
-                    var twinIndex = HalfEdges[halfEdgeIndex].TwinIndex;
+                    DestinationPoint = farPoint,
+                    OriginPoint = point,
+                    TwinIndex = newIndex + 1,
+                    NextIndex = newIndex + 1,
+                });
 
-                    var halfEdge = HalfEdges[halfEdgeIndex];
-                    var farPoint = halfEdge.DestinationPoint;
-                    halfEdge.DestinationPoint = point;
-                    HalfEdges[halfEdgeIndex] = halfEdge;
+                HalfEdges.Add(new HalfEdge
+                {
+                    DestinationPoint = point,
+                    OriginPoint = farPoint,
+                    TwinIndex = newIndex,
+                });
 
-                    var twin = HalfEdges[twinIndex];
-                    twin.OriginPoint = point;
-                    HalfEdges[twinIndex] = twin;
+                outgoingHalfEdges.Add(newIndex);
 
-                    outgoingHalfEdges.Add(twinIndex);
-
-                    var newIndex = HalfEdges.Count;
-
-                    HalfEdges.Add(new HalfEdge
-                    {
-                        DestinationPoint = farPoint,
-                        OriginPoint = point,
-                        TwinIndex = newIndex + 1,
-                        NextIndex = newIndex + 1,
-                    });
-
-                    HalfEdges.Add(new HalfEdge
-                    {
-                        DestinationPoint = point,
-                        OriginPoint = farPoint,
-                        TwinIndex = newIndex,
-                    });
-
-                    outgoingHalfEdges.Add(newIndex);
-
-                    segment.HalfEdgeIndex = newIndex;
-                }
+                segment.HalfEdgeIndex = newIndex;
             }
 
             // STEP 4: add new half edges for segment groups that start in current point

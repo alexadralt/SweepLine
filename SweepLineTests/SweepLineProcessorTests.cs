@@ -132,8 +132,6 @@ public class SweepLineProcessorTests
     [Test]
     public void Test1()
     {
-        var processor = new SweepLineProcessor<Segment>(new XStructure<Segment>(), new YStructure<Segment>());
-
         var segments = new List<Segment>
         {
             new()
@@ -292,10 +290,66 @@ public class SweepLineProcessorTests
             },
         };
         
+        var processor = new SweepLineProcessor<Segment>(new XStructure<Segment>(), new YStructure<Segment>());
         processor.AddSegments(segments);
-        
         processor.Process(new SweepLineTestVisitor());
+        CheckIntersections(segments);
+    }
+
+    [Test]
+    public void Test2()
+    {
+        var segments = new List<Segment>
+        {
+            new()
+            {
+                StartPoint = new Point
+                {
+                    X = 0, Y = 0,
+                },
+                EndPoint = new Point
+                {
+                    X = 3, Y = 0
+                }
+            },
+            new()
+            {
+                StartPoint = new Point
+                {
+                    X = 2, Y = 0
+                },
+                EndPoint = new Point
+                {
+                    X = 3, Y = 0
+                }
+            },
+            new()
+            {
+                StartPoint = new Point
+                {
+                    X = 1, Y = 3
+                },
+                EndPoint = new Point
+                {
+                    X = 2, Y = 0
+                }
+            },
+            new()
+            {
+                StartPoint = new Point
+                {
+                    X = 0, Y = 0
+                },
+                EndPoint = new Point
+                {
+                    X = 1, Y = 3
+                }
+            }
+        };
         
+        var processor = new SweepLineProcessor<Segment>(new XStructure<Segment>(), new YStructure<Segment>());
+        processor.AddSegments(segments);
+        processor.Process(new SweepLineTestVisitor());
         CheckIntersections(segments);
     }
 }
