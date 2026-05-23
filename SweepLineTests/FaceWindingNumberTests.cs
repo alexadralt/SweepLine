@@ -177,7 +177,7 @@ public class FaceWindingNumberTests
                 }
             }
         };
-        
+
         var result = new FaceWindingNumberComputer(segments).ComputeWindingNumbers();
         Assert.That(InsideFacesAsString(result.InsideFaces), Is.EqualTo("1: { [(0; 4) - (3; 2)] [(3; 2) - (1; 0)] [(1; 0) - (5; 0)] [(5; 0) - (4; 5)] [(4; 5) - (0; 4)] }\n"));
     }
@@ -306,12 +306,42 @@ public class FaceWindingNumberTests
             (-3, 6),
             (-3, 1)
         ]);
-        
+
         var result = new FaceWindingNumberComputer(segments).ComputeWindingNumbers();
         Assert.That(InsideFacesAsString(result.InsideFaces), Is.EqualTo("1: { [(-3; 6) - (-3; 1)] [(-3; 1) - (-2; 0)] [(-2; 0) - (7; 0)] [(7; 0) - (8; 1)] [(8; 1) - (6; 6)] [(6; 6) - (5; 7)] [(5; 7) - (4; 7)] [(4; 7) - (3,5; 6,5)] [(3,5; 6,5) - (4; 6)] [(4; 6) - (3,36; 5,52)] [(3,36; 5,52) - (3,75; 5)] [(3,75; 5) - (6; 5)] [(6; 5) - (6,5; 4)] [(6,5; 4) - (6; 3)] [(6; 3) - (4,5; 4)] [(4,5; 4) - (3,75; 5)] [(3,75; 5) - (2,6666666666666665; 5)] [(2,6666666666666665; 5) - (0; 3)] [(0; 3) - (-1; 3)] [(-1; 3) - (-2; 4)] [(-2; 4) - (-1; 5)] [(-1; 5) - (2,6666666666666665; 5)] [(2,6666666666666665; 5) - (3,36; 5,52)] [(3,36; 5,52) - (3; 6)] [(3; 6) - (3,5; 6,5)] [(3,5; 6,5) - (3; 7)] [(3; 7) - (-2; 7)] [(-2; 7) - (-3; 6)] }\n2: { [(-1; 5) - (-2; 4)] [(-2; 4) - (-1; 3)] [(-1; 3) - (0; 3)] [(0; 3) - (2,6666666666666665; 5)] [(2,6666666666666665; 5) - (-1; 5)] }\n0: { [(2,6666666666666665; 5) - (3,75; 5)] [(3,75; 5) - (3,36; 5,52)] [(3,36; 5,52) - (2,6666666666666665; 5)] }\n2: { [(3,5; 6,5) - (3; 6)] [(3; 6) - (3,36; 5,52)] [(3,36; 5,52) - (4; 6)] [(4; 6) - (3,5; 6,5)] }\n2: { [(3,75; 5) - (4,5; 4)] [(4,5; 4) - (6; 3)] [(6; 3) - (6,5; 4)] [(6,5; 4) - (6; 5)] [(6; 5) - (3,75; 5)] }\n"));
     }
 
-    private List<Segment> VerticesToSegments(List<(double x, double y)> vertices)
+    [Test]
+    public void Test5()
+    {
+        var segments = VerticesToSegments([
+            (0, 0),
+            (2, 0),
+            (0, 2),
+            (0.833333333, 0.333333333)
+        ]);
+        
+        var result = new FaceWindingNumberComputer(segments).ComputeWindingNumbers();
+        Assert.That(InsideFacesAsString(result.InsideFaces), Is.EqualTo("1: { [(0; 0) - (2; 0)] [(2; 0) - (0; 2)] [(0; 2) - (0,833333333; 0,333333333)] [(0,833333333; 0,333333333) - (0; 0)] }\n"));
+    }
+
+    [Test, Order(6)]
+    public void Test6()
+    {
+        var segments = VerticesToSegments([
+            (0, 0),
+            (2, 2),
+            (0, 0),
+            (4, 0),
+            (4, 4),
+            (0, 4)
+        ]);
+        
+        var result = new FaceWindingNumberComputer(segments).ComputeWindingNumbers();
+        Assert.That(InsideFacesAsString(result.InsideFaces), Is.EqualTo("1: { [(0; 0) - (2; 2)] [(2; 2) - (0; 0)] [(0; 0) - (4; 0)] [(4; 0) - (4; 4)] [(4; 4) - (0; 4)] [(0; 4) - (0; 0)] }\n"));
+    }
+
+    private static List<Segment> VerticesToSegments(List<(double x, double y)> vertices)
     {
         var segments = new List<Segment>();
         
@@ -336,7 +366,7 @@ public class FaceWindingNumberTests
         return segments;
     }
 
-    private string InsideFacesAsString(List<FaceWindingNumberComputer.FaceWithWindingNumber> insideFaces)
+    private static string InsideFacesAsString(List<FaceWindingNumberComputer.FaceWithWindingNumber> insideFaces)
     {
         var sb = new StringBuilder();
         foreach (var faceWithWindingNumber in insideFaces)

@@ -102,13 +102,27 @@ public class FaceWindingNumberComputer
                 var vertex1 = vertices[currentVertexIndex];
                 var vertex2 = vertices[(currentVertexIndex + 1) % vertices.Count];
                 var vertex3 = vertices[(currentVertexIndex + 2) % vertices.Count];
+
+                var ax = vertex2.X - vertex1.X;
+                var ay = vertex2.Y - vertex1.Y;
+
+                var bx = vertex3.X - vertex2.X;
+                var by = vertex3.Y - vertex2.Y;
+
+                var semiCross = ax * by - ay * bx;
+                if (Math.Abs(semiCross) < Point.Eps) // note(shevyrin): skip invalid triangles
+                {
+                    currentVertexIndex = (currentVertexIndex + 1) % vertices.Count;
+                    continue;
+                }
+                
                 internalFacePoint = new Point
                 {
                     X = (vertex1.X + vertex2.X + vertex3.X) / 3.0,
                     Y = (vertex1.Y + vertex2.Y + vertex3.Y) / 3.0,
                 };
                 
-                if (ComputeWindingNumber(faceBoundary, internalFacePoint) > 0)
+                if (ComputeWindingNumber(faceBoundary, internalFacePoint, checkPointOnBoundary: true) > 0)
                 {
                     break;
                 }
@@ -163,13 +177,34 @@ public class FaceWindingNumberComputer
         return (faces, outerFace!);
     }
 
-    private static int ComputeWindingNumber(List<Segment> loop, Point point)
+    private static int ComputeWindingNumber(List<Segment> boundary, Point point, bool checkPointOnBoundary = false)
     {
         var quarterRevelationsCount = 0;
-        var prevVertex = loop[0].StartPoint;
+        var prevVertex = boundary[0].StartPoint;
         var prevQuadrant = GetQuadrant(point, prevVertex);
-        foreach (var segment in loop)
+        foreach (var segment in boundary)
         {
+            if (checkPointOnBoundary)
+            {
+                var ax = segment.EndPoint.X - segment.StartPoint.X;
+                var ay = segment.EndPoint.Y - segment.StartPoint.Y;
+                
+                var bx = point.X - segment.StartPoint.X;
+                var by = point.Y - segment.StartPoint.Y;
+
+                var semiCross = ax * by - ay * bx;
+                if (Math.Abs(semiCross) < Point.Eps)
+                {
+                    var magA = Math.Sqrt(ax * ax + ay * ay);
+                    var scalarProjection = (ax * bx + ay * by) / magA;
+                    
+                    if (scalarProjection >= 0 && scalarProjection <= magA)
+                    {
+                        return 0; // note(shevyrin): point lying on a boundary segment is considered an outside point
+                    }
+                }
+            }
+            
             var vertex = segment.EndPoint;
             var currentQuadrant = GetQuadrant(point, vertex);
             var diff = currentQuadrant - prevQuadrant;
