@@ -1,4 +1,5 @@
-﻿using System.Drawing;
+﻿using System.Diagnostics;
+using System.Drawing;
 using System.Text;
 using MinkowskiSum;
 using SweepLine.Primitives;
@@ -51,10 +52,10 @@ public class MinkowskiSumTests
         ]);
 
         var segmentsB = VerticesToSegments([
-            (0, 0),
-            (2, 0),
-            (2, 2),
-            (0, 2),
+            (-1, -1),
+            (1, -1),
+            (1, 1),
+            (-1, 1),
         ]);
 
         var result = MinkowskiSumComputer.ComputeMinkowskiSum(
@@ -64,7 +65,7 @@ public class MinkowskiSumTests
         DumpBitmap("minkowski-sum-test-2.png", segmentsA, segmentsB, result);
 
         var resultAsString = ResultAsString(result);
-        Assert.That(resultAsString, Is.EqualTo("Boundary: { [(8; 0) - (0; 0)] [(0; 0) - (0; 7)] [(0; 7) - (4; 7)] [(4; 7) - (7; 7)] [(7; 7) - (8; 2)] [(8; 2) - (8; 0)] }\nHoles:\n0: { [(3,5; 3) - (4,5; 3)] [(4,5; 3) - (4; 5)] [(4; 5) - (3,5; 3)] }\n"));
+        Assert.That(resultAsString, Is.EqualTo("Boundary: { [(7; -1) - (-1; -1)] [(-1; -1) - (-1; 6)] [(-1; 6) - (3; 6)] [(3; 6) - (6; 6)] [(6; 6) - (7; 1)] [(7; 1) - (7; -1)] }\nHoles:\n0: { [(2,5; 2) - (3,5; 2)] [(3,5; 2) - (3; 4)] [(3; 4) - (2,5; 2)] }\n"));
     }
     
     private static List<Segment> VerticesToSegments(List<(double x, double y)> vertices)
@@ -117,8 +118,8 @@ public class MinkowskiSumTests
         foreach (var segment in segments)
         {
             g.DrawLine(pen,
-                new PointF(100 + (float)segment.StartPoint.X * 100, 800 + (float)segment.StartPoint.Y * -100),
-                new PointF(100 + (float)segment.EndPoint.X * 100, 800 + (float)segment.EndPoint.Y * -100));
+                new PointF(200 + (float)segment.StartPoint.X * 100, 800 + (float)segment.StartPoint.Y * -100),
+                new PointF(200 + (float)segment.EndPoint.X * 100, 800 + (float)segment.EndPoint.Y * -100));
         }
     }
 
