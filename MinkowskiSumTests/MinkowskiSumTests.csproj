@@ -22,8 +22,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\FaceBoundary\FaceBoundary.csproj" />
-      <ProjectReference Include="..\SweepLine\SweepLine.csproj" />
+      <ProjectReference Include="..\MinkowskiSum\MinkowskiSum.csproj" />
     </ItemGroup>
 
 </Project>

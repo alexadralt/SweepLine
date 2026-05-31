@@ -35,7 +35,7 @@ public class FaceWindingNumberComputer
         }));
     }
 
-    public (List<FaceWithWindingNumber> InsideFaces, List<Segment> OuterFace) ComputeWindingNumbers()
+    public (List<FaceWithWindingNumber> InsideFaces, List<Segment> OuterFace) ComputeWindingNumbers(bool onlyFacesWithZero = false)
     {
         var faces = new List<FaceWithWindingNumber>();
         List<Segment>? outerFace = null;
@@ -43,7 +43,7 @@ public class FaceWindingNumberComputer
         var halfEdges = BoundaryBuilder.ComputePlaneSubdivision();
 
 #if DRAW_FACE_POINTS
-        var bitmap = new Bitmap(1000, 1000);
+        var bitmap = new Bitmap(1100, 1000);
         using var g = Graphics.FromImage(bitmap);
         var colors = new[]
         {
@@ -132,12 +132,15 @@ public class FaceWindingNumberComputer
 
             // compute winding number
             var windingNumber = ComputeWindingNumber(ConvolutionCycle, internalFacePoint);
-            
-            faces.Add(new FaceWithWindingNumber
+
+            if (!onlyFacesWithZero || windingNumber == 0)
             {
-                FaceBoundary = new List<Segment>(faceBoundary), // note(shevyrin): copy list because iterator reuses it
-                WindingNumber = windingNumber,
-            });
+                faces.Add(new FaceWithWindingNumber
+                {
+                    FaceBoundary = new List<Segment>(faceBoundary), // note(shevyrin): copy list because iterator reuses it
+                    WindingNumber = windingNumber,
+                });
+            }
             
 #if DRAW_FACE_POINTS
             foreach (var segment in faceBoundary)

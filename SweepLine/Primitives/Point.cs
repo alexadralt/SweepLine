@@ -29,6 +29,22 @@ public readonly struct Point : IEquatable<Point>, IComparable<Point>
         return $"({X}; {Y})";
     }
 
+    public static Point operator +(Point left, Point right)
+        => new()
+        {
+            X = left.X + right.X,
+            Y = left.Y + right.Y,
+        };
+
+    public static Point operator -(Point left, Point right) => left + -right;
+
+    public static Point operator -(Point point)
+        => new()
+        {
+            X = -point.X,
+            Y = -point.Y
+        };
+
     public static bool operator ==(Point left, Point right) => left.Equals(right);
 
     public static bool operator !=(Point left, Point right) => !left.Equals(right);

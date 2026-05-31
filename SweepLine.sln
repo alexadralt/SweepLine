@@ -6,6 +6,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SweepLineTests", "SweepLine
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FaceBoundary", "FaceBoundary\FaceBoundary.csproj", "{CC685361-4E7F-41AD-A100-83E14BA59647}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MinkowskiSum", "MinkowskiSum\MinkowskiSum.csproj", "{12FE7A64-A334-4745-9E45-6882223C8D4C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MinkowskiSumTests", "MinkowskiSumTests\MinkowskiSumTests.csproj", "{F2121C6F-A862-45E5-9984-354F243ED2CF}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -24,5 +28,13 @@ Global
 		{CC685361-4E7F-41AD-A100-83E14BA59647}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CC685361-4E7F-41AD-A100-83E14BA59647}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CC685361-4E7F-41AD-A100-83E14BA59647}.Release|Any CPU.Build.0 = Release|Any CPU
+		{12FE7A64-A334-4745-9E45-6882223C8D4C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{12FE7A64-A334-4745-9E45-6882223C8D4C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{12FE7A64-A334-4745-9E45-6882223C8D4C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{12FE7A64-A334-4745-9E45-6882223C8D4C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F2121C6F-A862-45E5-9984-354F243ED2CF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F2121C6F-A862-45E5-9984-354F243ED2CF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F2121C6F-A862-45E5-9984-354F243ED2CF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F2121C6F-A862-45E5-9984-354F243ED2CF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
