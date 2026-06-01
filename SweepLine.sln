@@ -10,6 +10,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MinkowskiSum", "MinkowskiSu
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MinkowskiSumTests", "MinkowskiSumTests\MinkowskiSumTests.csproj", "{F2121C6F-A862-45E5-9984-354F243ED2CF}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "App", "App\App.csproj", "{6E49B558-EAAE-4693-BD51-344A03E6FE7A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -36,5 +38,9 @@ Global
 		{F2121C6F-A862-45E5-9984-354F243ED2CF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F2121C6F-A862-45E5-9984-354F243ED2CF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F2121C6F-A862-45E5-9984-354F243ED2CF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6E49B558-EAAE-4693-BD51-344A03E6FE7A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6E49B558-EAAE-4693-BD51-344A03E6FE7A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6E49B558-EAAE-4693-BD51-344A03E6FE7A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6E49B558-EAAE-4693-BD51-344A03E6FE7A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
