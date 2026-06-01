@@ -67,6 +67,32 @@ public class MinkowskiSumTests
         var resultAsString = ResultAsString(result);
         Assert.That(resultAsString, Is.EqualTo("Boundary: { [(7; -1) - (-1; -1)] [(-1; -1) - (-1; 6)] [(-1; 6) - (3; 6)] [(3; 6) - (6; 6)] [(6; 6) - (7; 1)] [(7; 1) - (7; -1)] }\nHoles:\n0: { [(2,5; 2) - (3,5; 2)] [(3,5; 2) - (3; 4)] [(3; 4) - (2,5; 2)] }\n"));
     }
+
+    [Test]
+    public void Test3()
+    {
+        var segmentsA = VerticesToSegments([
+            (0, 0),
+            (2, 0),
+            (3, 1),
+            (1, 2),
+        ]);
+
+        var segmentsB = VerticesToSegments([
+            (-2, -1),
+            (-1, -4),
+            (0, 0),
+        ]);
+
+        var result = MinkowskiSumComputer.ComputeMinkowskiSum(
+            segmentsA.Select(segment => segment.StartPoint).ToList(),
+            segmentsB.Select(segment => segment.StartPoint).ToList());
+
+        DumpBitmap("minkowski-sum-test-3.png", segmentsA, segmentsB, result, xOffset: 400, yOffset: 500);
+
+        var resultAsString = ResultAsString(result);
+        Assert.That(resultAsString, Is.EqualTo("Boundary: { [(-1; -4) - (-2; -1)] [(-2; -1) - (-1; 1)] [(-1; 1) - (1; 2)] [(1; 2) - (3; 1)] [(3; 1) - (2; -3)] [(2; -3) - (1; -4)] [(1; -4) - (-1; -4)] }\nHoles:\n"));
+    }
     
     private static List<Segment> VerticesToSegments(List<(double x, double y)> vertices)
     {
@@ -94,32 +120,32 @@ public class MinkowskiSumTests
     }
 
     private static void DumpBitmap(string fileName, List<Segment> segmentsA, List<Segment> segmentsB,
-        (List<Segment> Boundary, List<List<Segment>> Holes) result)
+        (List<Segment> Boundary, List<List<Segment>> Holes) result, float xOffset = 200, float yOffset = 800)
     {
         var bitmap = new Bitmap(1000, 1000);
         using var g = Graphics.FromImage(bitmap);
         
-        DrawSegments(segmentsA, Color.LawnGreen, g);
-        DrawSegments(segmentsB, Color.CornflowerBlue, g);
+        DrawSegments(segmentsA, Color.LawnGreen, g, xOffset, yOffset);
+        DrawSegments(segmentsB, Color.CornflowerBlue, g, xOffset, yOffset);
         
-        DrawSegments(result.Boundary, Color.Red, g);
+        DrawSegments(result.Boundary, Color.Red, g, xOffset, yOffset);
         foreach (var hole in result.Holes)
         {
-            DrawSegments(hole, Color.MediumPurple, g);
+            DrawSegments(hole, Color.MediumPurple, g, xOffset, yOffset);
         }
         
         bitmap.Save(fileName);
     }
 
-    private static void DrawSegments(List<Segment> segments, Color color, Graphics g)
+    private static void DrawSegments(List<Segment> segments, Color color, Graphics g, float xOffset, float yOffset)
     {
         var pen = new Pen(color);
         
         foreach (var segment in segments)
         {
             g.DrawLine(pen,
-                new PointF(200 + (float)segment.StartPoint.X * 100, 800 + (float)segment.StartPoint.Y * -100),
-                new PointF(200 + (float)segment.EndPoint.X * 100, 800 + (float)segment.EndPoint.Y * -100));
+                new PointF(xOffset + (float)segment.StartPoint.X * 100, yOffset + (float)segment.StartPoint.Y * -100),
+                new PointF(xOffset + (float)segment.EndPoint.X * 100, yOffset + (float)segment.EndPoint.Y * -100));
         }
     }
 
