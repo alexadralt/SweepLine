@@ -84,7 +84,7 @@ public class FaceWindingNumberComputer
                 var by = nextSegment.EndPoint.Y - nextSegment.StartPoint.Y;
 
                 var semiCross = ax * by - ay * bx;
-                if (semiCross <= 0)
+                if (semiCross <= Point.Eps)
                 {
                     outerFace = new List<Segment>(faceBoundary); // note(shevyrin): copy list because iterator reuses it
                     continue;
@@ -201,7 +201,7 @@ public class FaceWindingNumberComputer
                     var magA = Math.Sqrt(ax * ax + ay * ay);
                     var scalarProjection = (ax * bx + ay * by) / magA;
                     
-                    if (scalarProjection >= 0 && scalarProjection <= magA)
+                    if (scalarProjection >= -Point.Eps && scalarProjection <= magA + Point.Eps)
                     {
                         return 0; // note(shevyrin): point lying on a boundary segment is considered an outside point
                     }
@@ -229,7 +229,7 @@ public class FaceWindingNumberComputer
                 var by = vertex.Y - point.Y;
 
                 var semiCross = ax * by - ay * bx;
-                quarterRevelationsCount += semiCross > 0 ? 2 : -2;
+                quarterRevelationsCount += semiCross >= -Point.Eps ? 2 : -2;
             }
 
             prevQuadrant = currentQuadrant;

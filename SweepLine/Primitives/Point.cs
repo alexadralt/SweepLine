@@ -15,7 +15,7 @@ public readonly struct Point : IEquatable<Point>, IComparable<Point>
         return x * x + y * y;
     }
 
-    public bool Equals(Point other) => DistanceSquared(this, other) < Eps * Eps;
+    public bool Equals(Point other) => DistanceSquared(this, other) < Eps;
 
     public int CompareTo(Point other)
         => Equals(other) ? 0 : Math.Abs(X - other.X) > Eps ? X.CompareTo(other.X) : Y.CompareTo(other.Y);
