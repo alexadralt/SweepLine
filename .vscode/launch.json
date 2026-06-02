@@ -1,0 +1,14 @@
+{
+  "configurations": [
+    {
+      "name": "C#: App",
+      "type": "coreclr",
+      "request": "launch",
+      "program": "${workspaceFolder}/App/bin/Debug/net10.0/App.dll",
+      "cwd": "${workspaceFolder}/App",
+      "args": [],
+      "stopAtEntry": false,
+      "console": "internalConsole"
+    }
+  ]
+}
