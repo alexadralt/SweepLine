@@ -1,6 +1,4 @@
-﻿//#define DRAW_BITMAP
-
-#if DRAW_BITMAP
+﻿#if WINDOWS
 using System.Drawing;
 #endif
 
@@ -22,7 +20,7 @@ class Program
     var sumAsString = ResultAsString(sum);
 
     File.WriteAllText(args.Length > 2 ? args[2] : "output.txt", sumAsString);
-#if DRAW_BITMAP
+#if WINDOWS
     DumpBitmap("output.png", figureA, figureB, sum);
 #endif
   }
