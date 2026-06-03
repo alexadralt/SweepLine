@@ -2,7 +2,7 @@
   "profiles": {
     "MyConsoleApp": {
       "commandName": "Project",
-      "commandLineArgs": "Data/square-100.txt Data/circle-25.0.txt Data/s+c-25.0.txt"
+      "commandLineArgs": "Data/square-1.txt Data/circle-0.25.txt Data/s+c-0.25.txt"
     }
   }
 }

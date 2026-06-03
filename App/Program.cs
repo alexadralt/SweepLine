@@ -12,6 +12,17 @@ class Program
 {
   public static void Main(string[] args)
   {
+    if (args.Length < 2)
+    {
+      Console.WriteLine("Need at least two arguments, which are the names of files with the summands (the first one is possibly non-convex)");
+      return;
+    }
+    if (args.Length > 3)
+    {
+      Console.WriteLine("Need at most three arguments, which are the names of files with the summands (the first one is possibly non-convex) and the sum");
+      return;
+    }
+
     var figureA = GetPointsFromFile(args[0]);
     var figureB = GetPointsFromFile(args[1]);
 
