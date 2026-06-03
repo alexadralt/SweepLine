@@ -1,7 +1,7 @@
 #!/usr/bin/gnuplot
 
 # Настройка интерактивного окна и масштаба
-set terminal qt size 1200,1000
+set terminal qt size 2400,2000
 set size ratio -1
 
 # Выносим легенду вправо за пределы графика, выравнивая справа сверху
@@ -13,6 +13,8 @@ set title "Сумма Минковского" font "Arial,16"
 set xlabel "X"
 set ylabel "Y"
 set grid
+
+bind "r" "replot"
 
 # Отрисовка с использованием блоков данных и внешних переменных стилей
 plot $DATA1 with lines title 'Слагаемое 1' linecolor rgb COLOR1 linewidth WIDTH1 dashtype STYLE1, \
