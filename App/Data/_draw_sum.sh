@@ -52,6 +52,7 @@ while [[ "$#" -gt 0 ]]; do
         *) echo "Неизвестный параметр: $1"; show_help ;;
     esac
 done
+FILE3="Results/$FILE3"
 
 if [ -z "$FILE1" ] || [ -z "$FILE2" ] || [ -z "$FILE3" ]; then
     echo "Ошибка: Укажите файлы для всех трех многоугольников (-f1, -f2, -f3)."
