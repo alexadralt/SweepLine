@@ -1,6 +1,6 @@
 #!/bin/bash
 
-TEMPLATE_GP="_draw_sum.gp"
+TEMPLATE_GP="Scripts/draw_sum.gp"
 
 # Дефолтные значения стилей и размера шрифта (сделали крупнее по умолчанию)
 FONT_SIZE="14"
