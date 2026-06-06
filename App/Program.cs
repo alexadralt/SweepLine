@@ -62,7 +62,7 @@ class Program
     return sb.ToString();
   }
   
-#if DRAW_BITMAP
+#if WINDOWS
   private static void DumpBitmap(string fileName, List<Point> figureA, List<Point> figureB,
     (List<Segment> Boundary, List<List<Segment>> Holes) result, float xOffset = 200, float yOffset = 800)
   {
