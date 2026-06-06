@@ -1,14 +1,15 @@
 ﻿#if WINDOWS
 using System.Drawing;
 #endif
-
 using System.Globalization;
 using System.Text;
 using MinkowskiSum;
 using SweepLine.Primitives;
 using Point = SweepLine.Primitives.Point;
 
-class Program
+namespace App;
+
+internal static class Program
 {
   public static void Main(string[] args)
   {
@@ -32,7 +33,7 @@ class Program
 
     File.WriteAllText(args.Length > 2 ? args[2] : "output.txt", sumAsString);
 #if WINDOWS
-    DumpBitmap("output.png", figureA, figureB, sum);
+    DumpBitmap(args.Length > 2 ? $"{Path.GetFileNameWithoutExtension(args[2])}.png" : "output.png", figureA, figureB, sum);
 #endif
   }
 
