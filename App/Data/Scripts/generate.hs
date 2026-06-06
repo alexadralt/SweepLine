@@ -1,10 +1,12 @@
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE OverloadedStrings, MultiWayIf #-}
 import Options.Applicative
 import System.IO
 import System.Directory
 import System.Environment
 import Data.List
 import Control.Monad.Writer
+
+import Debug.Trace
 
 -- ----------------------------------------------------------------------------
 rMod :: Double -> Double -> Double
@@ -122,12 +124,56 @@ processLine :: Point -> Writer [Point] ()
 processLine p = tell $ singleton p
 
 processArc2p :: Point -> Point -> Double -> ArcType -> ArcDir -> Int -> Writer [Point] ()
-processArc2p p1 p2 r arcType arcDir n = undefined
+processArc2p p1 p2 r arcType arcDir n
+  | d == 0 = error $ "Cannot construct arc by 2 points (" ++ show p1 ++ "), (" ++ show p1 ++ "): they coincide!"
+  | d > 2*r = error $ "Cannot construct arc by 2 points (" ++ show p1 ++ "), (" ++ show p1 ++ "): they are located too far!"
+  | otherwise = mapM_ (\k -> tell $ singleton $ c +. r *. unitAngle (ang1 + fromIntegral k * da)) [1..n]
+  where
+    dx = x p2 - x p1
+    dy = y p2 - y p1
+    xm = (x p2 + x p1) / 2
+    ym = (y p2 + y p1) / 2
+    d = sqrt $ dx^2 + dy^2
+    h = sqrt $ r^2 - (d/2)^2
+    xc1 = xm - h*dy/d
+    yc1 = ym + h*dx/d
+    xc2 = xm + h*dy/d
+    yc2 = ym - h*dx/d
+    c1 = Point xc1 yc1
+    c2 = Point xc2 yc2
+
+    computeAngles :: Point -> (Double,Double,Double)
+    computeAngles c = 
+      let
+        ang1 = polarAngle (p1 -. c)
+        ang2' = polarAngle (p2 -. c)
+        ang2 = if ang1 > ang2' then ang2' + 2*pi else ang2'
+        da = if arcDir == Counterclockwise then ang2 - ang1 else ang2 - ang1 - 2*pi
+      in
+        (ang1,ang2,da)
+
+    (ang1_1, ang2_1, da_1) = computeAngles c1
+    (ang1_2, ang2_2, da_2) = computeAngles c2
+
+    (c,ang1,ang2,da_tot) = 
+      if arcType == ShortArc then 
+        if abs da_1 < abs da_2 then (c1,ang1_1,ang2_1,da_1) else (c2,ang1_2,ang2_2,da_2)
+      else
+        if abs da_1 > abs da_2 then (c1,ang1_1,ang2_1,da_1) else (c2,ang1_2,ang2_2,da_2)
+
+    -- da = trace (
+    --   unlines [ "Result: " ++ show (c,ang1,ang2,da_tot)
+    --           , "First: " ++ show (c1,ang1_1,ang2_1,da_1)
+    --           , "Second: " ++ show (c2,ang1_2,ang2_2,da_2)
+    --   ]
+    --   ) $ da_tot / fromIntegral n
+    da = da_tot / fromIntegral n
+
 
 processArc3p :: Point -> Point -> Point -> Int -> Writer [Point] ()
 processArc3p p1 p2 p3 n
   | abs d < 1e-6 = 
-        error $ "Cannot construct anr by 3 points (" ++ show p1 ++ "), (" ++ show p1 ++ "), " ++ show p3 ++ "): they are located in a line!"
+        error $ "Cannot construct arc by 3 points (" ++ show p1 ++ "), (" ++ show p1 ++ "), " ++ show p3 ++ "): they are located in a line!"
   | otherwise = mapM_ (\k -> tell $ singleton $ c +. r *. unitAngle (ang1 + fromIntegral k * da)) [1..n]
   where
     a1 = 2*(x p2 - x p1)
