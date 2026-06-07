@@ -1,4 +1,4 @@
-﻿//#define DRAW_DEBUG
+﻿#define DRAW_DEBUG
 
 #if DRAW_DEBUG        
 using System.Drawing;
@@ -11,13 +11,13 @@ namespace MinkowskiSum;
 
 public static class MinkowskiSumComputer
 {
-    public static (List<Segment> Boundary, List<List<Segment>> Holes) ComputeMinkowskiSum(List<Point> figureA, List<Point> figureB)
+    public static async Task<(List<Segment> Boundary, List<List<Segment>> Holes)> ComputeMinkowskiSum(List<Point> figureA, List<Point> figureB)
     {
         var convolutionCycle = ComputeConvolutionCycle(figureA, figureB);
 #if DRAW_DEBUG        
         DumpBitmap("convolution.png", convolutionCycle);
 #endif
-        var result = new FaceWindingNumberComputer(convolutionCycle).ComputeWindingNumbers(onlyFacesWithZero: true);
+        var result = await new FaceWindingNumberComputer(convolutionCycle).ComputeWindingNumbers(onlyFacesWithZero: true);
         
         return (result.OuterFace, result.InsideFaces.Select(face => face.FaceBoundary).ToList());
     }

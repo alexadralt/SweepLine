@@ -11,7 +11,7 @@ namespace App;
 
 internal static class Program
 {
-  public static void Main(string[] args)
+  public static async Task Main(string[] args)
   {
     if (args.Length < 2)
     {
@@ -27,7 +27,7 @@ internal static class Program
     var figureA = GetPointsFromFile(args[0]);
     var figureB = GetPointsFromFile(args[1]);
 
-    var sum = MinkowskiSumComputer.ComputeMinkowskiSum(figureA, figureB);
+    var sum = await MinkowskiSumComputer.ComputeMinkowskiSum(figureA, figureB);
 
     var sumAsString = ResultAsString(sum);
 

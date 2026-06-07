@@ -47,6 +47,7 @@ public class FaceBoundaryIterator(List<HalfEdge> halfEdges) : IEnumerable<List<S
         var notVisited = new NotVisitedArray(halfEdges.Count);
         
         var currentFaceBoundary = new List<Segment>();
+        var maxCap = 0;
         var currentIndex = 0;
 
         while (currentIndex != -1)
@@ -64,7 +65,9 @@ public class FaceBoundaryIterator(List<HalfEdge> halfEdges) : IEnumerable<List<S
             }
 
             yield return currentFaceBoundary;
-            currentFaceBoundary.Clear();
+            
+            maxCap = currentFaceBoundary.Capacity > maxCap ? currentFaceBoundary.Capacity : maxCap;
+            currentFaceBoundary = new List<Segment>(maxCap);
 
             currentIndex = notVisited.GetNotVisited();
         }

@@ -1,5 +1,6 @@
 //#define DRAW_FACE_POINTS
 
+using System.Collections.Concurrent;
 using System.Drawing;
 using SweepLine.Primitives;
 using Point = SweepLine.Primitives.Point;
@@ -35,12 +36,28 @@ public class FaceWindingNumberComputer
         }));
     }
 
-    public (List<FaceWithWindingNumber> InsideFaces, List<Segment> OuterFace) ComputeWindingNumbers(bool onlyFacesWithZero = false)
+    public async Task<(List<FaceWithWindingNumber> InsideFaces, List<Segment> OuterFace)> ComputeWindingNumbers(bool onlyFacesWithZero = false)
     {
-        var faces = new List<FaceWithWindingNumber>();
+        var halfEdges = BoundaryBuilder.ComputePlaneSubdivision();
+        var faceBoundaries = new FaceBoundaryIterator(halfEdges).ToList();
+        
+        var faces = new ConcurrentBag<FaceWithWindingNumber>();
         List<Segment>? outerFace = null;
 
-        var halfEdges = BoundaryBuilder.ComputePlaneSubdivision();
+        await Parallel.ForEachAsync(faceBoundaries.Chunk(faceBoundaries.Count / Environment.ProcessorCount),
+            new ParallelOptions
+            {
+                MaxDegreeOfParallelism = Environment.ProcessorCount,
+            },
+            (faceBoundaryChunk, _) =>
+            {
+                foreach (var faceBoundary in faceBoundaryChunk)
+                {
+                    ProcessFace(faceBoundary, faces, ref outerFace, onlyFacesWithZero);
+                }
+                
+                return ValueTask.CompletedTask;
+            });
 
 #if DRAW_FACE_POINTS
         var bitmap = new Bitmap(1100, 1000);
@@ -65,85 +82,10 @@ public class FaceWindingNumberComputer
         };
         var colorIndex = 0;
         var pen = new Pen(colors[colorIndex]);
-#endif
-        
-        foreach (var faceBoundary in new FaceBoundaryIterator(halfEdges))
+      
+        foreach (var faceBoundary in faces)
         {
-            // separate outer face
-            if (outerFace is null)
-            {
-                var minSegmentIndex = Enumerable.Range(0, faceBoundary.Count)
-                    .MinBy(index => faceBoundary[index].EndPoint);
-                
-                var minSegment = faceBoundary[minSegmentIndex];
-                var ax = minSegment.EndPoint.X - minSegment.StartPoint.X;
-                var ay = minSegment.EndPoint.Y - minSegment.StartPoint.Y;
-
-                var nextSegment = faceBoundary[(minSegmentIndex + 1) % faceBoundary.Count];
-                var bx = nextSegment.EndPoint.X - nextSegment.StartPoint.X;
-                var by = nextSegment.EndPoint.Y - nextSegment.StartPoint.Y;
-
-                var semiCross = ax * by - ay * bx;
-                if (semiCross <= Point.Eps)
-                {
-                    outerFace = new List<Segment>(faceBoundary); // note(shevyrin): copy list because iterator reuses it
-                    continue;
-                }
-            }
-            
-            // find a point inside the face
-            var internalFacePoint = new Point();
-
-            var vertices = faceBoundary.Select(segment => segment.StartPoint).ToList();
-            var currentVertexIndex = 0;
-            
-            while (true)
-            {
-                var vertex1 = vertices[currentVertexIndex];
-                var vertex2 = vertices[(currentVertexIndex + 1) % vertices.Count];
-                var vertex3 = vertices[(currentVertexIndex + 2) % vertices.Count];
-
-                var ax = vertex2.X - vertex1.X;
-                var ay = vertex2.Y - vertex1.Y;
-
-                var bx = vertex3.X - vertex2.X;
-                var by = vertex3.Y - vertex2.Y;
-
-                var semiCross = ax * by - ay * bx;
-                if (Math.Abs(semiCross) < Point.Eps) // note(shevyrin): skip invalid triangles
-                {
-                    currentVertexIndex = (currentVertexIndex + 1) % vertices.Count;
-                    continue;
-                }
-                
-                internalFacePoint = new Point
-                {
-                    X = (vertex1.X + vertex2.X + vertex3.X) / 3.0,
-                    Y = (vertex1.Y + vertex2.Y + vertex3.Y) / 3.0,
-                };
-                
-                if (ComputeWindingNumber(faceBoundary, internalFacePoint, checkPointOnBoundary: true) > 0)
-                {
-                    break;
-                }
-                
-                currentVertexIndex = (currentVertexIndex + 1) % vertices.Count;
-            }
-
-            // compute winding number
-            var windingNumber = ComputeWindingNumber(ConvolutionCycle, internalFacePoint);
-
-            if (!onlyFacesWithZero || windingNumber == 0)
-            {
-                faces.Add(new FaceWithWindingNumber
-                {
-                    FaceBoundary = new List<Segment>(faceBoundary), // note(shevyrin): copy list because iterator reuses it
-                    WindingNumber = windingNumber,
-                });
-            }
-            
-#if DRAW_FACE_POINTS
-            foreach (var segment in faceBoundary)
+            foreach (var segment in faceBoundary.FaceBoundary)
             {
                 var ox = segment.StartPoint.X;
                 var oy = segment.StartPoint.Y;
@@ -168,16 +110,94 @@ public class FaceWindingNumberComputer
             }
             
             //g.DrawEllipse(new Pen(colors[colorIndex], 5), 295 + (float)internalFacePoint.X * 100, 795 + (float)internalFacePoint.Y * -100, 10, 10);
-            g.DrawString($"{windingNumber}", new Font(FontFamily.GenericMonospace, 20), new SolidBrush(colors[colorIndex]),
+            g.DrawString($"{faceBoundary.WindingNumber}", new Font(FontFamily.GenericMonospace, 20), new SolidBrush(colors[colorIndex]),
                 290 + (float)internalFacePoint.X * 100, 785 + (float)internalFacePoint.Y * -100);
             colorIndex = (colorIndex + 1) % colors.Length;
             pen = new Pen(colors[colorIndex]);
-#endif
         }
-#if DRAW_FACE_POINTS        
+      
         bitmap.Save("debug-face-points.png");
 #endif
-        return (faces, outerFace!);
+        return (faces.ToList(), outerFace!);
+    }
+
+    private void ProcessFace(List<Segment> faceBoundary, ConcurrentBag<FaceWithWindingNumber> faces,
+        ref List<Segment>? outerFace, bool onlyFacesWithZero = false)
+    {
+        // separate outer face
+        var minSegmentIndex = Enumerable.Range(0, faceBoundary.Count)
+            .MinBy(index => faceBoundary[index].EndPoint);
+                
+        var minSegment = faceBoundary[minSegmentIndex];
+        var ax = minSegment.EndPoint.X - minSegment.StartPoint.X;
+        var ay = minSegment.EndPoint.Y - minSegment.StartPoint.Y;
+
+        var nextSegment = faceBoundary[(minSegmentIndex + 1) % faceBoundary.Count];
+        var bx = nextSegment.EndPoint.X - nextSegment.StartPoint.X;
+        var by = nextSegment.EndPoint.Y - nextSegment.StartPoint.Y;
+
+        var semiCross = ax * by - ay * bx;
+        if (semiCross <= Point.Eps)
+        {
+            outerFace = faceBoundary;
+            return;
+        }
+            
+        var internalFacePoint = FindInternalFacePoint(faceBoundary);
+            
+        var windingNumber = ComputeWindingNumber(ConvolutionCycle, internalFacePoint);
+
+        if (!onlyFacesWithZero || windingNumber == 0)
+        {
+            faces.Add(new FaceWithWindingNumber
+            {
+                FaceBoundary = faceBoundary,
+                WindingNumber = windingNumber,
+            });
+        }
+    }
+
+    private Point FindInternalFacePoint(List<Segment> faceBoundary)
+    {
+        Point internalFacePoint;
+        
+        var vertices = faceBoundary.Select(segment => segment.StartPoint).ToList();
+        var currentVertexIndex = 0;
+            
+        while (true)
+        {
+            var vertex1 = vertices[currentVertexIndex];
+            var vertex2 = vertices[(currentVertexIndex + 1) % vertices.Count];
+            var vertex3 = vertices[(currentVertexIndex + 2) % vertices.Count];
+
+            var ax = vertex2.X - vertex1.X;
+            var ay = vertex2.Y - vertex1.Y;
+
+            var bx = vertex3.X - vertex2.X;
+            var by = vertex3.Y - vertex2.Y;
+
+            var semiCross = ax * by - ay * bx;
+            if (Math.Abs(semiCross) < Point.Eps) // note(shevyrin): skip invalid triangles
+            {
+                currentVertexIndex = (currentVertexIndex + 1) % vertices.Count;
+                continue;
+            }
+                
+            internalFacePoint = new Point
+            {
+                X = (vertex1.X + vertex2.X + vertex3.X) / 3.0,
+                Y = (vertex1.Y + vertex2.Y + vertex3.Y) / 3.0,
+            };
+                
+            if (ComputeWindingNumber(faceBoundary, internalFacePoint, checkPointOnBoundary: true) > 0)
+            {
+                break;
+            }
+                
+            currentVertexIndex = (currentVertexIndex + 1) % vertices.Count;
+        }
+
+        return internalFacePoint;
     }
 
     private static int ComputeWindingNumber(List<Segment> boundary, Point point, bool checkPointOnBoundary = false)
