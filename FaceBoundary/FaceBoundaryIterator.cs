@@ -5,9 +5,42 @@ namespace FaceBoundary;
 
 public class FaceBoundaryIterator(List<HalfEdge> halfEdges) : IEnumerable<List<Segment>>
 {
+    private struct NotVisitedArray
+    {
+        private (int value, int movedTo)[] Array { get; }
+        private int Remaining { get; set; }
+
+        public NotVisitedArray(int count)
+        {
+            Array = Enumerable.Range(0, count).Select(i => (i, -1)).ToArray();
+            Remaining = count;
+        }
+
+        public void Remove(int index)
+        {
+            var item = Array[index];
+            while (item.value == -1)
+            {
+                index = item.movedTo;
+                item = Array[index];
+            }
+            
+            Array[index] = Array[Remaining - 1];
+            Array[Remaining - 1] = (-1, index);
+            Remaining -= 1;
+        }
+
+        public int GetNotVisited()
+        {
+            return Remaining > 0 ? Array[0].value : -1;
+        }
+    }
+    
     public IEnumerator<List<Segment>> GetEnumerator()
     {
         var visited = new bool[halfEdges.Count];
+        var notVisited = new NotVisitedArray(halfEdges.Count);
+        
         var currentFaceBoundary = new List<Segment>();
         var currentIndex = 0;
 
@@ -15,6 +48,7 @@ public class FaceBoundaryIterator(List<HalfEdge> halfEdges) : IEnumerable<List<S
         {
             var halfEdge = halfEdges[currentIndex];
             visited[currentIndex] = true;
+            notVisited.Remove(currentIndex);
             
             currentFaceBoundary.Add(halfEdge.AsSegment());
 
@@ -26,8 +60,8 @@ public class FaceBoundaryIterator(List<HalfEdge> halfEdges) : IEnumerable<List<S
 
             yield return currentFaceBoundary;
             currentFaceBoundary.Clear();
-            
-            currentIndex = Enumerable.Range(0, halfEdges.Count).FirstOrDefault(index => !visited[index], -1);
+
+            currentIndex = notVisited.GetNotVisited();
         }
     }
 
