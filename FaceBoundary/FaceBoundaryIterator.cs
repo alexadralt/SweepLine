@@ -12,8 +12,13 @@ public class FaceBoundaryIterator(List<HalfEdge> halfEdges) : IEnumerable<List<S
 
         public NotVisitedArray(int count)
         {
-            Array = Enumerable.Range(0, count).Select(i => (i, -1)).ToArray();
+            Array = new (int value, int movedTo)[count];
             Remaining = count;
+
+            for (var i = 0; i < count; i++)
+            {
+                Array[i] = (i, -1);
+            }
         }
 
         public void Remove(int index)
