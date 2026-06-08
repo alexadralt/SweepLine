@@ -3,7 +3,7 @@
 TEMPLATE_GP="Scripts/draw_sum.gp"
 
 # Дефолтные значения стилей и размера шрифта (сделали крупнее по умолчанию)
-FONT_SIZE="14"
+FONT_SIZE="28"
 
 FILE1=""
 COLOR1="green";   WIDTH1="8";   STYLE1="1"
