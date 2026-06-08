@@ -1,7 +1,9 @@
 //#define DRAW_FACE_POINTS
 
+#if DRAW_FACE_POINTS
 using System.Drawing;
-using System.Runtime.CompilerServices;
+#endif
+
 using SweepLine.Primitives;
 using Point = SweepLine.Primitives.Point;
 

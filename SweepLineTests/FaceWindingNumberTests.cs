@@ -1,5 +1,8 @@
 using System.Text;
 using FaceBoundary;
+using SweepLine.Algorithm;
+using SweepLine.DataStructuresLinkedListImpl;
+using SweepLine.DataStructureTreeImpl;
 using SweepLine.Primitives;
 
 namespace SweepLineTests;
@@ -112,8 +115,9 @@ public class FaceWindingNumberTests
             },
         };
         
-        var result = new FaceWindingNumberComputer(segments).ComputeWindingNumbers();
-        Assert.That(InsideFacesAsString(result.InsideFaces), Is.EqualTo("1: { [(0; 3) - (1; 1)] [(1; 1) - (3; 1)] [(3; 1) - (5; 2)] [(5; 2) - (4; 4)] [(4; 4) - (3; 3,5)] [(3; 3,5) - (3; 2)] [(3; 2) - (2; 3)] [(2; 3) - (3; 3,5)] [(3; 3,5) - (3; 5)] [(3; 5) - (1; 4)] [(1; 4) - (0; 3)] }\n2: { [(3; 3,5) - (2; 3)] [(2; 3) - (3; 2)] [(3; 2) - (3; 3,5)] }\n"));
+        var halfEdges = GetPlanarSubdivision(segments);
+        var result = FaceWindingNumberComputer.ComputeWindingNumbers(segments, halfEdges);
+        Assert.That(InsideFacesAsString(result.InsideFaces), Is.EqualTo("1: { [(0; 3) - (1; 1)] [(1; 1) - (3; 1)] [(3; 1) - (5; 2)] [(5; 2) - (4; 4)] [(4; 4) - (3; 3,5)] [(3; 3,5) - (3; 2)] [(3; 2) - (2; 3)] [(2; 3) - (3; 3,5)] [(3; 3,5) - (3; 5)] [(3; 5) - (1; 4)] [(1; 4) - (0; 3)] }\n2: { [(2; 3) - (3; 2)] [(3; 2) - (3; 3,5)] [(3; 3,5) - (2; 3)] }\n"));
     }
 
     [Test]
@@ -178,7 +182,8 @@ public class FaceWindingNumberTests
             }
         };
 
-        var result = new FaceWindingNumberComputer(segments).ComputeWindingNumbers();
+        var halfEdges = GetPlanarSubdivision(segments);
+        var result = FaceWindingNumberComputer.ComputeWindingNumbers(segments, halfEdges);
         Assert.That(InsideFacesAsString(result.InsideFaces), Is.EqualTo("1: { [(0; 4) - (3; 2)] [(3; 2) - (1; 0)] [(1; 0) - (5; 0)] [(5; 0) - (4; 5)] [(4; 5) - (0; 4)] }\n"));
     }
 
@@ -277,8 +282,9 @@ public class FaceWindingNumberTests
             }
         };
 
-        var result = new FaceWindingNumberComputer(segments).ComputeWindingNumbers();
-        Assert.That(InsideFacesAsString(result.InsideFaces), Is.EqualTo("1: { [(0; 0) - (3; 0)] [(3; 0) - (3,857142857142857; 1,1428571428571428)] [(3,857142857142857; 1,1428571428571428) - (2; 3)] [(2; 3) - (4; 5)] [(4; 5) - (5; 4,5)] [(5; 4,5) - (5; 6)] [(5; 6) - (1; 6)] [(1; 6) - (0; 0)] }\n2: { [(4; 5) - (2; 3)] [(2; 3) - (3,857142857142857; 1,1428571428571428)] [(3,857142857142857; 1,1428571428571428) - (5; 2,6666666666666665)] [(5; 2,6666666666666665) - (5; 4,5)] [(5; 4,5) - (4; 5)] }\n1: { [(3,857142857142857; 1,1428571428571428) - (5; 0)] [(5; 0) - (5; 2,6666666666666665)] [(5; 2,6666666666666665) - (3,857142857142857; 1,1428571428571428)] }\n1: { [(5; 2,6666666666666665) - (6; 4)] [(6; 4) - (5; 4,5)] [(5; 4,5) - (5; 2,6666666666666665)] }\n"));
+        var halfEdges = GetPlanarSubdivision(segments);
+        var result = FaceWindingNumberComputer.ComputeWindingNumbers(segments, halfEdges);
+        Assert.That(InsideFacesAsString(result.InsideFaces), Is.EqualTo("1: { [(0; 0) - (3; 0)] [(3; 0) - (3,857142857142857; 1,1428571428571428)] [(3,857142857142857; 1,1428571428571428) - (2; 3)] [(2; 3) - (4; 5)] [(4; 5) - (5; 4,5)] [(5; 4,5) - (5; 6)] [(5; 6) - (1; 6)] [(1; 6) - (0; 0)] }\n1: { [(5; 4,5) - (5; 2,6666666666666665)] [(5; 2,6666666666666665) - (6; 4)] [(6; 4) - (5; 4,5)] }\n2: { [(5; 2,6666666666666665) - (5; 4,5)] [(5; 4,5) - (4; 5)] [(4; 5) - (2; 3)] [(2; 3) - (3,857142857142857; 1,1428571428571428)] [(3,857142857142857; 1,1428571428571428) - (5; 2,6666666666666665)] }\n1: { [(5; 0) - (5; 2,6666666666666665)] [(5; 2,6666666666666665) - (3,857142857142857; 1,1428571428571428)] [(3,857142857142857; 1,1428571428571428) - (5; 0)] }\n"));
     }
 
     [Test]
@@ -307,8 +313,9 @@ public class FaceWindingNumberTests
             (-3, 1)
         ]);
 
-        var result = new FaceWindingNumberComputer(segments).ComputeWindingNumbers();
-        Assert.That(InsideFacesAsString(result.InsideFaces), Is.EqualTo("1: { [(-3; 6) - (-3; 1)] [(-3; 1) - (-2; 0)] [(-2; 0) - (7; 0)] [(7; 0) - (8; 1)] [(8; 1) - (6; 6)] [(6; 6) - (5; 7)] [(5; 7) - (4; 7)] [(4; 7) - (3,5; 6,5)] [(3,5; 6,5) - (4; 6)] [(4; 6) - (3,36; 5,52)] [(3,36; 5,52) - (3,75; 5)] [(3,75; 5) - (6; 5)] [(6; 5) - (6,5; 4)] [(6,5; 4) - (6; 3)] [(6; 3) - (4,5; 4)] [(4,5; 4) - (3,75; 5)] [(3,75; 5) - (2,6666666666666665; 5)] [(2,6666666666666665; 5) - (0; 3)] [(0; 3) - (-1; 3)] [(-1; 3) - (-2; 4)] [(-2; 4) - (-1; 5)] [(-1; 5) - (2,6666666666666665; 5)] [(2,6666666666666665; 5) - (3,36; 5,52)] [(3,36; 5,52) - (3; 6)] [(3; 6) - (3,5; 6,5)] [(3,5; 6,5) - (3; 7)] [(3; 7) - (-2; 7)] [(-2; 7) - (-3; 6)] }\n2: { [(-1; 5) - (-2; 4)] [(-2; 4) - (-1; 3)] [(-1; 3) - (0; 3)] [(0; 3) - (2,6666666666666665; 5)] [(2,6666666666666665; 5) - (-1; 5)] }\n0: { [(2,6666666666666665; 5) - (3,75; 5)] [(3,75; 5) - (3,36; 5,52)] [(3,36; 5,52) - (2,6666666666666665; 5)] }\n2: { [(3,5; 6,5) - (3; 6)] [(3; 6) - (3,36; 5,52)] [(3,36; 5,52) - (4; 6)] [(4; 6) - (3,5; 6,5)] }\n2: { [(3,75; 5) - (4,5; 4)] [(4,5; 4) - (6; 3)] [(6; 3) - (6,5; 4)] [(6,5; 4) - (6; 5)] [(6; 5) - (3,75; 5)] }\n"));
+        var halfEdges = GetPlanarSubdivision(segments);
+        var result = FaceWindingNumberComputer.ComputeWindingNumbers(segments, halfEdges);
+        Assert.That(InsideFacesAsString(result.InsideFaces), Is.EqualTo("1: { [(6; 6) - (5; 7)] [(5; 7) - (4; 7)] [(4; 7) - (3,5; 6,5)] [(3,5; 6,5) - (4; 6)] [(4; 6) - (3,36; 5,52)] [(3,36; 5,52) - (3,75; 5)] [(3,75; 5) - (6; 5)] [(6; 5) - (6,5; 4)] [(6,5; 4) - (6; 3)] [(6; 3) - (4,5; 4)] [(4,5; 4) - (3,75; 5)] [(3,75; 5) - (2,6666666666666665; 5)] [(2,6666666666666665; 5) - (0; 3)] [(0; 3) - (-1; 3)] [(-1; 3) - (-2; 4)] [(-2; 4) - (-1; 5)] [(-1; 5) - (2,6666666666666665; 5)] [(2,6666666666666665; 5) - (3,36; 5,52)] [(3,36; 5,52) - (3; 6)] [(3; 6) - (3,5; 6,5)] [(3,5; 6,5) - (3; 7)] [(3; 7) - (-2; 7)] [(-2; 7) - (-3; 6)] [(-3; 6) - (-3; 1)] [(-3; 1) - (-2; 0)] [(-2; 0) - (7; 0)] [(7; 0) - (8; 1)] [(8; 1) - (6; 6)] }\n2: { [(4,5; 4) - (6; 3)] [(6; 3) - (6,5; 4)] [(6,5; 4) - (6; 5)] [(6; 5) - (3,75; 5)] [(3,75; 5) - (4,5; 4)] }\n0: { [(3,75; 5) - (3,36; 5,52)] [(3,36; 5,52) - (2,6666666666666665; 5)] [(2,6666666666666665; 5) - (3,75; 5)] }\n2: { [(-2; 4) - (-1; 3)] [(-1; 3) - (0; 3)] [(0; 3) - (2,6666666666666665; 5)] [(2,6666666666666665; 5) - (-1; 5)] [(-1; 5) - (-2; 4)] }\n2: { [(3,5; 6,5) - (3; 6)] [(3; 6) - (3,36; 5,52)] [(3,36; 5,52) - (4; 6)] [(4; 6) - (3,5; 6,5)] }\n"));
     }
 
     [Test]
@@ -321,7 +328,8 @@ public class FaceWindingNumberTests
             (0.833333333, 0.333333333)
         ]);
         
-        var result = new FaceWindingNumberComputer(segments).ComputeWindingNumbers();
+        var halfEdges = GetPlanarSubdivision(segments);
+        var result = FaceWindingNumberComputer.ComputeWindingNumbers(segments, halfEdges);
         Assert.That(InsideFacesAsString(result.InsideFaces), Is.EqualTo("1: { [(0; 0) - (2; 0)] [(2; 0) - (0; 2)] [(0; 2) - (0,833333333; 0,333333333)] [(0,833333333; 0,333333333) - (0; 0)] }\n"));
     }
 
@@ -336,8 +344,9 @@ public class FaceWindingNumberTests
             (4, 4),
             (0, 4)
         ]);
-        
-        var result = new FaceWindingNumberComputer(segments).ComputeWindingNumbers();
+
+        var halfEdges = GetPlanarSubdivision(segments);
+        var result = FaceWindingNumberComputer.ComputeWindingNumbers(segments, halfEdges);
         Assert.That(InsideFacesAsString(result.InsideFaces), Is.EqualTo("1: { [(0; 0) - (2; 2)] [(2; 2) - (0; 0)] [(0; 0) - (4; 0)] [(4; 0) - (4; 4)] [(4; 4) - (0; 4)] [(0; 4) - (0; 0)] }\n"));
     }
 
@@ -364,6 +373,37 @@ public class FaceWindingNumberTests
         }
 
         return segments;
+    }
+    
+    private static List<HalfEdge> GetPlanarSubdivision(List<Segment> segments)
+    {
+        var sweepLineProcessor = new SweepLineProcessor<SegmentWithReference>(
+            new XStructureSortedSet<SegmentWithReference>(),
+            new YStructure<SegmentWithReference>());
+        
+        sweepLineProcessor
+            .AddSegments(segments
+                .Select(EnsureSegmentOrientation)
+                .Select(segment => new SegmentWithReference(segment)));
+
+        var faceBoundaryBuilderVisitor = new FaceBoundaryBuilderVisitor();
+        sweepLineProcessor.Process(faceBoundaryBuilderVisitor);
+
+        return faceBoundaryBuilderVisitor.HalfEdges;
+    }
+    
+    private static Segment EnsureSegmentOrientation(Segment segment)
+    {
+        if (segment.StartPoint > segment.EndPoint)
+        {
+            return new Segment
+            {
+                StartPoint = segment.EndPoint,
+                EndPoint = segment.StartPoint,
+            };
+        }
+
+        return segment;
     }
 
     private static string InsideFacesAsString(List<FaceWindingNumberComputer.FaceWithWindingNumber> insideFaces)

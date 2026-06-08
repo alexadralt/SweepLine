@@ -1,6 +1,8 @@
-using System.Diagnostics;
 using System.Drawing;
 using FaceBoundary;
+using SweepLine.Algorithm;
+using SweepLine.DataStructuresLinkedListImpl;
+using SweepLine.DataStructureTreeImpl;
 using SweepLine.Primitives;
 using Point = SweepLine.Primitives.Point;
 
@@ -169,7 +171,7 @@ public class FaceBoundaryBuilderTests
             },
         };
         
-        var result = new FaceBoundaryBuilder(segments).ComputePlaneSubdivision();
+        var result = GetPlanarSubdivision(segments);
         DumpBitmap(result, "out-test-1.png");
     }
 
@@ -279,7 +281,7 @@ public class FaceBoundaryBuilderTests
             },
         };
 
-        var result = new FaceBoundaryBuilder(segments).ComputePlaneSubdivision();
+        var result = GetPlanarSubdivision(segments);
         DumpBitmap(result, "out-test-2.png");
     }
 
@@ -333,9 +335,40 @@ public class FaceBoundaryBuilderTests
                 }
             }
         };
-        
-        var result = new FaceBoundaryBuilder(segments).ComputePlaneSubdivision();
+
+        var result = GetPlanarSubdivision(segments);
         DumpBitmap(result, "out-test-3.png");
+    }
+
+    private static List<HalfEdge> GetPlanarSubdivision(List<Segment> segments)
+    {
+        var sweepLineProcessor = new SweepLineProcessor<SegmentWithReference>(
+            new XStructureSortedSet<SegmentWithReference>(),
+            new YStructure<SegmentWithReference>());
+        
+        sweepLineProcessor
+            .AddSegments(segments
+                .Select(EnsureSegmentOrientation)
+                .Select(segment => new SegmentWithReference(segment)));
+
+        var faceBoundaryBuilderVisitor = new FaceBoundaryBuilderVisitor();
+        sweepLineProcessor.Process(faceBoundaryBuilderVisitor);
+
+        return faceBoundaryBuilderVisitor.HalfEdges;
+    }
+    
+    private static Segment EnsureSegmentOrientation(Segment segment)
+    {
+        if (segment.StartPoint > segment.EndPoint)
+        {
+            return new Segment
+            {
+                StartPoint = segment.EndPoint,
+                EndPoint = segment.StartPoint,
+            };
+        }
+
+        return segment;
     }
 
     private void DumpBitmap(List<HalfEdge> result, string fileName)
