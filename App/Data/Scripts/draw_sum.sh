@@ -6,13 +6,13 @@ TEMPLATE_GP="Scripts/draw_sum.gp"
 FONT_SIZE="14"
 
 FILE1=""
-COLOR1="red";   WIDTH1="2";   STYLE1="1"
+COLOR1="green";   WIDTH1="8";   STYLE1="1"
 
 FILE2=""
-COLOR2="blue";  WIDTH2="2";   STYLE2="1"
+COLOR2="blue";  WIDTH2="8";   STYLE2="1"
 
 FILE3=""
-COLOR3="green"; WIDTH3="4";   STYLE3="1"
+COLOR3="red"; WIDTH3="4";   STYLE3="1"
 
 show_help() {
     echo "Использование: $0 [опции]"

@@ -7,12 +7,23 @@ set size ratio -1
 # Выносим легенду вправо за пределы графика, выравнивая справа сверху
 set key outside right top
 
-set key font "Arial,14"
+# Подписи в легенде
+cmd = sprintf('set key font "Arial,%d"', FONT_SIZE)
+eval(cmd)
 
-set title "Сумма Минковского" font "Arial,16"
+# Заголовок
+cmd = sprintf('set title "Сумма Минковского" font "Arial,%d"', FONT_SIZE)
+eval(cmd)
+
+# Подписи
 set xlabel "X"
 set ylabel "Y"
-set grid
+set grid lw 2
+set xtics offset 0,-1
+set ytics offset -1,0
+TICK_SIZE = FONT_SIZE - 4
+cmd = sprintf('set tics font "Arial,%d"', TICK_SIZE)
+eval(cmd)
 
 bind "r" "replot"
 
