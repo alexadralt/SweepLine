@@ -1,14 +1,15 @@
 ﻿#if WINDOWS
 using System.Drawing;
 #endif
-
 using System.Globalization;
 using System.Text;
 using MinkowskiSum;
 using SweepLine.Primitives;
 using Point = SweepLine.Primitives.Point;
 
-class Program
+namespace App;
+
+internal static class Program
 {
   public static void Main(string[] args)
   {
@@ -32,7 +33,7 @@ class Program
 
     File.WriteAllText(args.Length > 2 ? args[2] : "output.txt", sumAsString);
 #if WINDOWS
-    DumpBitmap("output.png", figureA, figureB, sum);
+    DumpBitmap(args.Length > 2 ? $"{Path.GetFileNameWithoutExtension(args[2])}.png" : "output.png", figureA, figureB, sum);
 #endif
   }
 
@@ -62,7 +63,7 @@ class Program
     return sb.ToString();
   }
   
-#if DRAW_BITMAP
+#if WINDOWS
   private static void DumpBitmap(string fileName, List<Point> figureA, List<Point> figureB,
     (List<Segment> Boundary, List<List<Segment>> Holes) result, float xOffset = 200, float yOffset = 800)
   {

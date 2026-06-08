@@ -1,10 +1,9 @@
 ﻿//#define DISPLAY_STEPS
 
-using System.Diagnostics;
-using System.Drawing;
 using System.Runtime.CompilerServices;
 using SweepLine.Algorithm;
 using SweepLine.DataStructuresLinkedListImpl;
+using SweepLine.DataStructureTreeImpl;
 using SweepLine.Primitives;
 using Point = SweepLine.Primitives.Point;
 
@@ -286,7 +285,7 @@ public class FaceBoundaryBuilder
     }
 
     private SweepLineProcessor<SegmentWithReference> SweepLineProcessor { get; } =
-        new(new XStructure<SegmentWithReference>(), new YStructure<SegmentWithReference>());
+        new(new XStructureSortedSet<SegmentWithReference>(), new YStructure<SegmentWithReference>());
     
     public FaceBoundaryBuilder(IEnumerable<Segment> segments)
     {
